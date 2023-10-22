@@ -3,7 +3,7 @@ use bevy::{prelude::*, window::WindowResolution, sprite::MaterialMesh2dBundle};
 const WINDOW_SIZE_WIDTH: f32 = 500.0;
 const WINDOW_SIZE_HEIGHT: f32 = 610.0;
 
-const PLAYER_SIZE: f32 = 20.0;
+const PLAYER_RADIUS: f32 = 20.0;
 const PLAYER_VELOCITY: f32 = 3.0;
 
 #[derive(Resource)]
@@ -45,17 +45,8 @@ fn setup_system(
     mut meshes: ResMut<Assets<Mesh>>,
     query: Query<&Window>,
 ) {
+    // camera
     commands.spawn(Camera2dBundle::default());
-
-    // player
-    commands.spawn(
-        (MaterialMesh2dBundle {
-            mesh: meshes.add(shape::Circle::new(PLAYER_SIZE).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::BLUE)),
-            ..default()
-        },
-        Player
-    ));
 
     // get window limit
     let window = query.single();
@@ -63,30 +54,57 @@ fn setup_system(
     let height = window.resolution.height() / 2.0;
 
     commands.insert_resource(WindowSizeLimit::new(height, -height, width, -width));
+
+    // set player init position
+    let player = Player {
+        x: 0.0,
+        y: -height + PLAYER_RADIUS,
+        z: 10.0,
+    };
+
+    // player
+    commands.spawn(
+        (MaterialMesh2dBundle {
+            mesh: meshes.add(shape::Circle::new(PLAYER_RADIUS).into()).into(),
+            material: materials.add(ColorMaterial::from(Color::BLUE)),
+            transform: Transform {
+                translation: Vec3::new(player.x, player.y, player.z),
+                ..default()
+            },
+            ..default()
+        },
+        player,
+    ));
 }
 
 #[derive(Component)]
-struct Player;
+struct Player {
+    x: f32,
+    y: f32,
+    z: f32,
+}
 
 fn player_move_system(
     input: Res<Input<KeyCode>>,
-    mut query: Query<&mut Transform, With<Player>>,
+    mut query: Query<(&mut Transform, &mut Player), With<Player>>,
 ) {
-    let mut player_transform = query.single_mut();
+    let (mut player_transform, mut player_position) = query.single_mut();
 
     if input.pressed(KeyCode::Up) {
-        player_transform.translation.y += PLAYER_VELOCITY;
+        player_position.y += PLAYER_VELOCITY;
     }
 
     if input.pressed(KeyCode::Down) {
-        player_transform.translation.y -= PLAYER_VELOCITY;
+        player_position.y -= PLAYER_VELOCITY;
     }
 
     if input.pressed(KeyCode::Right) {
-        player_transform.translation.x += PLAYER_VELOCITY;
+        player_position.x += PLAYER_VELOCITY;
     }
 
     if input.pressed(KeyCode::Left) {
-        player_transform.translation.x -= PLAYER_VELOCITY;
+        player_position.x -= PLAYER_VELOCITY;
     }
+
+    player_transform.translation = Vec3::new(player_position.x, player_position.y, player_position.z);
 }
