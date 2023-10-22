@@ -32,6 +32,7 @@ fn main() {
             ..default()
         }))
         .add_systems(Startup, setup_system)
+        .add_systems(FixedUpdate, player_in_window_system)
         .add_systems(Update, (
             player_move_system,
             bevy::window::close_on_esc,
@@ -84,6 +85,12 @@ struct Player {
     z: f32,
 }
 
+impl Player {
+    fn get_position(&self) -> Vec3 {
+        Vec3 { x: self.x, y: self.y, z: self.z }
+    }
+}
+
 fn player_move_system(
     input: Res<Input<KeyCode>>,
     mut query: Query<(&mut Transform, &mut Player), With<Player>>,
@@ -106,5 +113,30 @@ fn player_move_system(
         player_position.x -= PLAYER_VELOCITY;
     }
 
-    player_transform.translation = Vec3::new(player_position.x, player_position.y, player_position.z);
+    player_transform.translation = player_position.get_position();
+}
+
+fn player_in_window_system(
+    mut query: Query<(&mut Transform, &mut Player), With<Player>>,
+    window_size_limit: Res<WindowSizeLimit>,
+) {
+    let (mut player_transform, mut player_position) = query.single_mut();
+
+    if player_position.y > window_size_limit.top {
+        player_position.y = window_size_limit.top - PLAYER_RADIUS;
+    }
+
+    if player_position.y < window_size_limit.bottom {
+        player_position.y = window_size_limit.bottom + PLAYER_RADIUS;
+    }
+
+    if player_position.x > window_size_limit.right {
+        player_position.x = window_size_limit.right - PLAYER_RADIUS;
+    }
+
+    if player_position.x < window_size_limit.left {
+        player_position.x = window_size_limit.left + PLAYER_RADIUS;
+    }
+
+    player_transform.translation = player_position.get_position();
 }
