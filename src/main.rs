@@ -20,7 +20,6 @@ impl WindowSizeLimit {
     }
 }
 
-
 fn main() {
     App::new()
         .add_plugins(DefaultPlugins.set(WindowPlugin {
@@ -34,7 +33,7 @@ fn main() {
         }))
         .add_systems(Startup, setup_system)
         .add_systems(Update, (
-            plyaer_move_system,
+            player_move_system,
             bevy::window::close_on_esc,
         ))
         .run();
@@ -69,25 +68,25 @@ fn setup_system(
 #[derive(Component)]
 struct Player;
 
-fn plyaer_move_system(
+fn player_move_system(
     input: Res<Input<KeyCode>>,
     mut query: Query<&mut Transform, With<Player>>,
 ) {
-    let mut transform = query.single_mut();
+    let mut player_transform = query.single_mut();
 
     if input.pressed(KeyCode::Up) {
-        transform.translation.y += PLAYER_VELOCITY;
+        player_transform.translation.y += PLAYER_VELOCITY;
     }
 
     if input.pressed(KeyCode::Down) {
-        transform.translation.y -= PLAYER_VELOCITY;
+        player_transform.translation.y -= PLAYER_VELOCITY;
     }
 
     if input.pressed(KeyCode::Right) {
-        transform.translation.x += PLAYER_VELOCITY;
+        player_transform.translation.x += PLAYER_VELOCITY;
     }
 
     if input.pressed(KeyCode::Left) {
-        transform.translation.x -= PLAYER_VELOCITY;
+        player_transform.translation.x -= PLAYER_VELOCITY;
     }
 }
