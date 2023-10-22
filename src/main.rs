@@ -64,8 +64,6 @@ fn setup_system(
     let height = window.resolution.height() / 2.0;
 
     commands.insert_resource(WindowSizeLimit::new(height, -height, width, -width));
-
-
 }
 
 #[derive(Component)]
