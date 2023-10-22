@@ -1,10 +1,15 @@
 use bevy::{prelude::*, window::WindowResolution, sprite::MaterialMesh2dBundle};
+use rand::Rng;
 
 const WINDOW_SIZE_WIDTH: f32 = 500.0;
 const WINDOW_SIZE_HEIGHT: f32 = 610.0;
 
 const PLAYER_RADIUS: f32 = 20.0;
 const PLAYER_VELOCITY: f32 = 3.0;
+
+const ENEMY_RADIUS: f32 = 25.0;
+const ENEMY_SPAWN_MAX_COUNTER: u32 = 3;
+const ENEMY_SPAWN_DURATION_SECONDS: f32 = 1.0;
 
 const SHOOT_VELOCITY: f32 = 3.0;
 
@@ -45,6 +50,7 @@ fn main() {
             player_move_system,
             player_shoot_system,
             auto_move_system,
+            enemy_spawn_system,
             bevy::window::close_on_esc,
         ))
         .run();
@@ -65,6 +71,12 @@ fn setup_system(
     let height = window.resolution.height() / 2.0;
 
     commands.insert_resource(WindowSizeLimit::new(height, -height, width, -width));
+
+    // enemy count
+    commands.insert_resource(EnemySpawn {
+        counter: 0,
+        timer: Timer::from_seconds(ENEMY_SPAWN_DURATION_SECONDS, TimerMode::Repeating),
+    });
 
     // set player init position
     let player = Player {
@@ -164,7 +176,6 @@ fn player_shoot_system(
     input: Res<Input<KeyCode>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-
 ) {
     if input.just_pressed(KeyCode::Space) {
         let player_position = query.single();
@@ -185,7 +196,6 @@ fn auto_move_system(
     mut query: Query<(&mut Transform, &mut Velocity)>,
 ) {
     for (mut transform, velocity) in query.iter_mut() {
-
         let x = transform.translation.x;
         let y = transform.translation.y;
 
@@ -194,4 +204,43 @@ fn auto_move_system(
 
         transform.translation = Vec3::new(x, y, transform.translation.z);
     }
+}
+
+fn enemy_spawn_system(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    window_size_limit: Res<WindowSizeLimit>,
+    mut enemy_spawn: ResMut<EnemySpawn>,
+    time: Res<Time>,
+) {
+    let mut rng = rand::thread_rng();
+
+    let x = rng.gen_range(window_size_limit.left + ENEMY_RADIUS ..window_size_limit.right - ENEMY_RADIUS);
+    let y = rng.gen_range(window_size_limit.bottom + ENEMY_RADIUS ..window_size_limit.top - ENEMY_RADIUS);
+
+    if enemy_spawn.counter < ENEMY_SPAWN_MAX_COUNTER && enemy_spawn.timer.tick(time.delta()).just_finished() {
+        commands.spawn(
+            (MaterialMesh2dBundle {
+                mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
+                material: materials.add(ColorMaterial::from(Color::GREEN)),
+                transform: Transform::from_xyz(x, y, 9.0),
+                ..default()
+            },
+            Enemy { x, y },
+        ));
+        enemy_spawn.counter += 1;
+    }
+}
+
+#[derive(Component)]
+struct Enemy {
+    x: f32,
+    y: f32,
+}
+
+#[derive(Resource)]
+struct EnemySpawn {
+    counter: u32,
+    timer: Timer,
 }
