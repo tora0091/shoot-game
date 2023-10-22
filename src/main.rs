@@ -12,6 +12,7 @@ const ENEMY_SPAWN_MAX_COUNTER: u32 = 3;
 const ENEMY_SPAWN_DURATION_SECONDS: f32 = 1.0;
 
 const SHOOT_VELOCITY: f32 = 3.0;
+const SHOOT_RADIUS: f32 = 5.0;
 
 #[derive(Resource)]
 struct WindowSizeLimit {
@@ -51,6 +52,7 @@ fn main() {
             player_shoot_system,
             auto_move_system,
             enemy_spawn_system,
+            enemy_shoot_system,
             bevy::window::close_on_esc,
         ))
         .run();
@@ -182,7 +184,7 @@ fn player_shoot_system(
 
         commands.spawn(
             (MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Circle::new(5.0).into()).into(),
+                mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::RED)),
                 transform: Transform::from_translation(player_position.set_z_position(0.0)),
                 ..default()
@@ -218,18 +220,43 @@ fn enemy_spawn_system(
 
     let x = rng.gen_range(window_size_limit.left + ENEMY_RADIUS ..window_size_limit.right - ENEMY_RADIUS);
     let y = rng.gen_range(window_size_limit.bottom + ENEMY_RADIUS ..window_size_limit.top - ENEMY_RADIUS);
+    let shot_interval = rng.gen_range(1.0..5.0);
 
     if enemy_spawn.counter < ENEMY_SPAWN_MAX_COUNTER && enemy_spawn.timer.tick(time.delta()).just_finished() {
-        commands.spawn(
-            (MaterialMesh2dBundle {
+        commands.spawn((
+            MaterialMesh2dBundle {
                 mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::GREEN)),
                 transform: Transform::from_xyz(x, y, 9.0),
                 ..default()
             },
-            Enemy { x, y },
+            Enemy {
+                x, y, shoot_interval: Timer::from_seconds(shot_interval as f32, TimerMode::Repeating),
+            },
         ));
         enemy_spawn.counter += 1;
+    }
+}
+
+fn enemy_shoot_system(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut query: Query<&mut Enemy>,
+    time: Res<Time>,
+) {
+    for mut enemy in query.iter_mut() {
+        if enemy.shoot_interval.tick(time.delta()).just_finished() {
+            commands.spawn((
+                MaterialMesh2dBundle {
+                    mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
+                    material: materials.add(ColorMaterial::from(Color::RED)),
+                    transform: Transform::from_xyz(enemy.x, enemy.y, 0.0),
+                    ..default()
+                },
+                Velocity {x: 0.0, y: -SHOOT_VELOCITY },
+            ));
+        }
     }
 }
 
@@ -237,6 +264,7 @@ fn enemy_spawn_system(
 struct Enemy {
     x: f32,
     y: f32,
+    shoot_interval: Timer,
 }
 
 #[derive(Resource)]
