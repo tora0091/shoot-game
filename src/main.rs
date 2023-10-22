@@ -122,20 +122,24 @@ fn player_in_window_system(
 ) {
     let (mut player_transform, mut player_position) = query.single_mut();
 
-    if player_position.y > window_size_limit.top {
-        player_position.y = window_size_limit.top - PLAYER_RADIUS;
+    let top_limit = window_size_limit.top - PLAYER_RADIUS;
+    if player_position.y > top_limit {
+        player_position.y = top_limit;
     }
 
-    if player_position.y < window_size_limit.bottom {
-        player_position.y = window_size_limit.bottom + PLAYER_RADIUS;
+    let bottom_limit = window_size_limit.bottom + PLAYER_RADIUS;
+    if player_position.y < bottom_limit {
+        player_position.y = bottom_limit;
     }
 
-    if player_position.x > window_size_limit.right {
-        player_position.x = window_size_limit.right - PLAYER_RADIUS;
+    let right_limit = window_size_limit.right - PLAYER_RADIUS;
+    if player_position.x > right_limit {
+        player_position.x = right_limit;
     }
 
-    if player_position.x < window_size_limit.left {
-        player_position.x = window_size_limit.left + PLAYER_RADIUS;
+    let light_limit = window_size_limit.left + PLAYER_RADIUS;
+    if player_position.x < light_limit {
+        player_position.x = light_limit;
     }
 
     player_transform.translation = player_position.get_position();
