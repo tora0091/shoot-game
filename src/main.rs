@@ -6,6 +6,8 @@ const WINDOW_SIZE_HEIGHT: f32 = 610.0;
 const PLAYER_RADIUS: f32 = 20.0;
 const PLAYER_VELOCITY: f32 = 3.0;
 
+const SHOOT_VELOCITY: f32 = 3.0;
+
 #[derive(Resource)]
 struct WindowSizeLimit {
     top: f32,
@@ -18,6 +20,12 @@ impl WindowSizeLimit {
     fn new(top: f32, bottom: f32, right: f32, left: f32) -> Self {
         Self { top, bottom, right, left }
     }
+}
+
+#[derive(Component)]
+struct Velocity {
+    x: f32,
+    y: f32,
 }
 
 fn main() {
@@ -35,6 +43,8 @@ fn main() {
         .add_systems(FixedUpdate, player_in_window_system)
         .add_systems(Update, (
             player_move_system,
+            player_shoot_system,
+            auto_move_system,
             bevy::window::close_on_esc,
         ))
         .run();
@@ -89,11 +99,14 @@ impl Player {
     fn get_position(&self) -> Vec3 {
         Vec3 { x: self.x, y: self.y, z: self.z }
     }
+    fn set_z_position(&self, z: f32) -> Vec3 {
+        Vec3 { x: self.x, y: self.y, z }
+    }
 }
 
 fn player_move_system(
     input: Res<Input<KeyCode>>,
-    mut query: Query<(&mut Transform, &mut Player), With<Player>>,
+    mut query: Query<(&mut Transform, &mut Player)>,
 ) {
     let (mut player_transform, mut player_position) = query.single_mut();
 
@@ -117,7 +130,7 @@ fn player_move_system(
 }
 
 fn player_in_window_system(
-    mut query: Query<(&mut Transform, &mut Player), With<Player>>,
+    mut query: Query<(&mut Transform, &mut Player)>,
     window_size_limit: Res<WindowSizeLimit>,
 ) {
     let (mut player_transform, mut player_position) = query.single_mut();
@@ -143,4 +156,42 @@ fn player_in_window_system(
     }
 
     player_transform.translation = player_position.get_position();
+}
+
+fn player_shoot_system(
+    mut commands: Commands,
+    query: Query<&Player>,
+    input: Res<Input<KeyCode>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+
+) {
+    if input.just_pressed(KeyCode::Space) {
+        let player_position = query.single();
+
+        commands.spawn(
+            (MaterialMesh2dBundle {
+                mesh: meshes.add(shape::Circle::new(5.0).into()).into(),
+                material: materials.add(ColorMaterial::from(Color::RED)),
+                transform: Transform::from_translation(player_position.set_z_position(0.0)),
+                ..default()
+            },
+            Velocity { x: 0.0, y: SHOOT_VELOCITY },
+        ));
+    }
+}
+
+fn auto_move_system(
+    mut query: Query<(&mut Transform, &mut Velocity)>,
+) {
+    for (mut transform, velocity) in query.iter_mut() {
+
+        let x = transform.translation.x;
+        let y = transform.translation.y;
+
+        let x = x + velocity.x;
+        let y = y + velocity.y;
+
+        transform.translation = Vec3::new(x, y, transform.translation.z);
+    }
 }
