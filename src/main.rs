@@ -53,6 +53,7 @@ fn main() {
             auto_move_system,
             enemy_spawn_system,
             enemy_shoot_system,
+            auto_despawn_system,
             bevy::window::close_on_esc,
         ))
         .run();
@@ -182,6 +183,7 @@ fn player_shoot_system(
     if input.just_pressed(KeyCode::Space) {
         let player_position = query.single();
 
+        // player shoot
         commands.spawn(
             (MaterialMesh2dBundle {
                 mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
@@ -190,6 +192,7 @@ fn player_shoot_system(
                 ..default()
             },
             Velocity { x: 0.0, y: SHOOT_VELOCITY },
+            AutoDespawn,
         ));
     }
 }
@@ -223,6 +226,7 @@ fn enemy_spawn_system(
     let shot_interval = rng.gen_range(1.0..5.0);
 
     if enemy_spawn.counter < ENEMY_SPAWN_MAX_COUNTER && enemy_spawn.timer.tick(time.delta()).just_finished() {
+        // enemy
         commands.spawn((
             MaterialMesh2dBundle {
                 mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
@@ -233,6 +237,7 @@ fn enemy_spawn_system(
             Enemy {
                 x, y, shoot_interval: Timer::from_seconds(shot_interval as f32, TimerMode::Repeating),
             },
+            AutoDespawn,
         ));
         enemy_spawn.counter += 1;
     }
@@ -247,6 +252,7 @@ fn enemy_shoot_system(
 ) {
     for mut enemy in query.iter_mut() {
         if enemy.shoot_interval.tick(time.delta()).just_finished() {
+            // fire shooting from enemy
             commands.spawn((
                 MaterialMesh2dBundle {
                     mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
@@ -255,6 +261,7 @@ fn enemy_shoot_system(
                     ..default()
                 },
                 Velocity {x: 0.0, y: -SHOOT_VELOCITY },
+                AutoDespawn,
             ));
         }
     }
@@ -271,4 +278,24 @@ struct Enemy {
 struct EnemySpawn {
     counter: u32,
     timer: Timer,
+}
+
+#[derive(Component)]
+struct AutoDespawn;
+
+fn auto_despawn_system(
+    mut commands: Commands,
+    query: Query<(Entity, &Transform), With<AutoDespawn>>,
+    window_size_limit: Res<WindowSizeLimit>,
+) {
+    let margin = 100.0;
+    for (entity, transform) in query.iter() {
+        if transform.translation.x > window_size_limit.right + margin
+            || transform.translation.x < window_size_limit.left - margin
+            || transform.translation.y > window_size_limit.top + margin
+            || transform.translation.y < window_size_limit.bottom - margin
+        {
+            commands.entity(entity).despawn();
+        }
+    }
 }
