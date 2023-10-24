@@ -1,4 +1,4 @@
-use bevy::{prelude::*, window::WindowResolution, sprite::MaterialMesh2dBundle};
+use bevy::{prelude::*, window::WindowResolution, sprite::{MaterialMesh2dBundle, collide_aabb::collide}};
 use rand::Rng;
 
 const WINDOW_SIZE_WIDTH: f32 = 500.0;
@@ -54,6 +54,7 @@ fn main() {
             enemy_spawn_system,
             enemy_shoot_system,
             auto_despawn_system,
+            player_shoot_collision_system,
             bevy::window::close_on_esc,
         ))
         .run();
@@ -193,6 +194,7 @@ fn player_shoot_system(
             },
             Velocity { x: 0.0, y: SHOOT_VELOCITY },
             AutoDespawn,
+            FromPlayerShoot,
         ));
     }
 }
@@ -296,6 +298,34 @@ fn auto_despawn_system(
             || transform.translation.y < window_size_limit.bottom - margin
         {
             commands.entity(entity).despawn();
+        }
+    }
+}
+
+#[derive(Component)]
+struct FromPlayerShoot;
+
+fn player_shoot_collision_system(
+    mut commands: Commands,
+    player_shoots: Query<(Entity, &Transform), With<FromPlayerShoot>>,
+    enemies: Query<(Entity, &Transform), With<Enemy>>,
+    mut enemy_spawn: ResMut<EnemySpawn>,
+) {
+    for (enemy_entity, enemy_transform) in enemies.iter() {
+        for (player_shoot_entity, player_shoot_transform) in player_shoots.iter() {
+            let is_collide = collide(
+                enemy_transform.translation,
+                Vec2::new(ENEMY_RADIUS, ENEMY_RADIUS),
+                player_shoot_transform.translation,
+                Vec2::new(PLAYER_RADIUS, PLAYER_RADIUS));
+
+            // hit a player shoot to enemy
+            if is_collide != None {
+                commands.entity(enemy_entity).despawn();
+                commands.entity(player_shoot_entity).despawn();
+
+                enemy_spawn.counter -= 1;
+            }
         }
     }
 }
