@@ -1,3 +1,5 @@
+use std::time::Duration;
+
 use bevy::{prelude::*, window::WindowResolution, sprite::{MaterialMesh2dBundle, collide_aabb::collide}};
 use rand::Rng;
 
@@ -55,6 +57,7 @@ fn main() {
             enemy_shoot_system,
             auto_despawn_system,
             player_shoot_collision_system,
+            shoot_bang_system,
             bevy::window::close_on_esc,
         ))
         .run();
@@ -310,6 +313,8 @@ fn player_shoot_collision_system(
     player_shoots: Query<(Entity, &Transform), With<FromPlayerShoot>>,
     enemies: Query<(Entity, &Transform), With<Enemy>>,
     mut enemy_spawn: ResMut<EnemySpawn>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for (enemy_entity, enemy_transform) in enemies.iter() {
         for (player_shoot_entity, player_shoot_transform) in player_shoots.iter() {
@@ -325,7 +330,53 @@ fn player_shoot_collision_system(
                 commands.entity(player_shoot_entity).despawn();
 
                 enemy_spawn.counter -= 1;
+
+                let x = enemy_transform.translation.x;
+                let y = enemy_transform.translation.y;
+
+                commands.spawn((
+                    MaterialMesh2dBundle {
+                        mesh: meshes.add(shape::Quad::new(Vec2::new(20.0, 50.0)).into()).into(),
+                        material: materials.add(ColorMaterial::from(Color::RED)),
+                        transform: Transform {
+                            translation: Vec3::new(x, y, 1.0),
+                            rotation: Quat::from_rotation_z(400.0),
+                            ..default()
+                        },
+                        ..default()
+                    },
+                    ShootBang {
+                        timer: Timer::new(Duration::from_secs_f32(0.5), TimerMode::Once),
+                    }
+                )).with_children(|p| {
+                    p.spawn(MaterialMesh2dBundle {
+                        mesh: meshes.add(shape::Quad::new(Vec2::new(20.0, 50.0)).into()).into(),
+                        material: materials.add(ColorMaterial::from(Color::RED)),
+                        transform: Transform {
+                            rotation: Quat::from_rotation_z(20.0),
+                            ..default()
+                        },
+                        ..default()
+                    });
+                });
             }
+        }
+    }
+}
+
+#[derive(Component)]
+struct ShootBang {
+    timer: Timer,
+}
+
+fn shoot_bang_system(
+    mut commands: Commands,
+    mut query: Query<(Entity, &mut ShootBang)>,
+    time: Res<Time>,
+) {
+    for (entity, mut shoot_bang) in query.iter_mut() {
+        if shoot_bang.timer.tick(time.delta()).just_finished() {
+            commands.entity(entity).despawn_recursive();
         }
     }
 }
