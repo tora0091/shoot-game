@@ -5,6 +5,7 @@ use rand::Rng;
 
 const WINDOW_SIZE_WIDTH: f32 = 500.0;
 const WINDOW_SIZE_HEIGHT: f32 = 610.0;
+const WINDOW_SIZE_MARGIN: f32 = 100.0;
 
 const PLAYER_RADIUS: f32 = 20.0;
 const PLAYER_VELOCITY: f32 = 3.0;
@@ -58,6 +59,7 @@ fn main() {
             auto_despawn_system,
             player_shoot_collision_system,
             shoot_bang_system,
+            speed_control_system,
             bevy::window::close_on_esc,
         ))
         .run();
@@ -84,6 +86,9 @@ fn setup_system(
         counter: 0,
         timer: Timer::from_seconds(ENEMY_SPAWN_DURATION_SECONDS, TimerMode::Repeating),
     });
+
+    // speed control
+    commands.insert_resource(SpeedControl { value: 1.0 });
 
     // set player init position
     let player = Player {
@@ -126,23 +131,26 @@ impl Player {
 fn player_move_system(
     input: Res<Input<KeyCode>>,
     mut query: Query<(&mut Transform, &mut Player)>,
+    speed_control: Res<SpeedControl>,
 ) {
     let (mut player_transform, mut player_position) = query.single_mut();
 
+    let speed = PLAYER_VELOCITY * speed_control.value;
+
     if input.pressed(KeyCode::Up) {
-        player_position.y += PLAYER_VELOCITY;
+        player_position.y += speed;
     }
 
     if input.pressed(KeyCode::Down) {
-        player_position.y -= PLAYER_VELOCITY;
+        player_position.y -= speed;
     }
 
     if input.pressed(KeyCode::Right) {
-        player_position.x += PLAYER_VELOCITY;
+        player_position.x += speed;
     }
 
     if input.pressed(KeyCode::Left) {
-        player_position.x -= PLAYER_VELOCITY;
+        player_position.x -= speed;
     }
 
     player_transform.translation = player_position.get_position();
@@ -183,6 +191,7 @@ fn player_shoot_system(
     input: Res<Input<KeyCode>>,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
+    speed_control: Res<SpeedControl>,
 ) {
     if input.just_pressed(KeyCode::Space) {
         let player_position = query.single();
@@ -195,7 +204,7 @@ fn player_shoot_system(
                 transform: Transform::from_translation(player_position.set_z_position(0.0)),
                 ..default()
             },
-            Velocity { x: 0.0, y: SHOOT_VELOCITY },
+            Velocity { x: 0.0, y: SHOOT_VELOCITY * speed_control.value },
             AutoDespawn,
             FromPlayerShoot,
         ));
@@ -254,6 +263,7 @@ fn enemy_shoot_system(
     mut meshes: ResMut<Assets<Mesh>>,
     mut query: Query<&mut Enemy>,
     time: Res<Time>,
+    speed_control: Res<SpeedControl>,
 ) {
     for mut enemy in query.iter_mut() {
         if enemy.shoot_interval.tick(time.delta()).just_finished() {
@@ -265,7 +275,7 @@ fn enemy_shoot_system(
                     transform: Transform::from_xyz(enemy.x, enemy.y, 0.0),
                     ..default()
                 },
-                Velocity {x: 0.0, y: -SHOOT_VELOCITY },
+                Velocity {x: 0.0, y: -SHOOT_VELOCITY * speed_control.value },
                 AutoDespawn,
             ));
         }
@@ -293,7 +303,7 @@ fn auto_despawn_system(
     query: Query<(Entity, &Transform), With<AutoDespawn>>,
     window_size_limit: Res<WindowSizeLimit>,
 ) {
-    let margin = 100.0;
+    let margin = WINDOW_SIZE_MARGIN;
     for (entity, transform) in query.iter() {
         if transform.translation.x > window_size_limit.right + margin
             || transform.translation.x < window_size_limit.left - margin
@@ -378,5 +388,27 @@ fn shoot_bang_system(
         if shoot_bang.timer.tick(time.delta()).just_finished() {
             commands.entity(entity).despawn_recursive();
         }
+    }
+}
+
+#[derive(Resource)]
+struct SpeedControl {
+    value: f32,
+}
+
+fn speed_control_system(
+    input: Res<Input<KeyCode>>,
+    mut speed_control: ResMut<SpeedControl>,
+) {
+    // speed up
+    if input.just_pressed(KeyCode::A) {
+        speed_control.value *= 1.2;
+        println!("speed: {}", speed_control.value);
+    }
+
+    // speed down
+    if input.just_pressed(KeyCode::Z) {
+        speed_control.value *= 0.8;
+        println!("speed: {}", speed_control.value);
     }
 }
