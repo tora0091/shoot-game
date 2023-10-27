@@ -60,6 +60,7 @@ fn main() {
             auto_despawn_system,
             player_shoot_collision_system,
             enemy_shoot_collision_system,
+            player_enemy_collision_system,
             shoot_bang_system,
             show_bang_system,
             speed_control_system,
@@ -489,5 +490,40 @@ fn speed_control_system(
     if input.just_pressed(KeyCode::Z) {
         speed_control.value *= 0.8;
         println!("speed: {}", speed_control.value);
+    }
+}
+
+fn player_enemy_collision_system(
+    mut commands: Commands,
+    player: Query<(Entity, &Transform), With<Player>>,
+    enemy: Query<(Entity, &Transform), With<Enemy>>,
+    mut player_spawn: ResMut<PlayerSpawn>,
+    mut enemy_spawn: ResMut<EnemySpawn>,
+) {
+    if let Ok((player_entity, player_transform)) = player.get_single() {
+        for (enemy_entity, enemy_transform) in enemy.iter() {
+            let is_collide = collide(
+                player_transform.translation,
+                Vec2::new(PLAYER_RADIUS, PLAYER_RADIUS),
+                enemy_transform.translation,
+                Vec2::new(ENEMY_RADIUS, ENEMY_RADIUS));
+
+            if is_collide != None {
+                commands.entity(player_entity).despawn();
+                player_spawn.is_spawn = true;
+                player_spawn.timer = Timer::from_seconds(3.0, TimerMode::Once);
+                commands.spawn(ShowBangPoint {
+                    x: player_transform.translation.x,
+                    y: player_transform.translation.y,
+                });
+
+                commands.entity(enemy_entity).despawn();
+                enemy_spawn.counter -= 1;
+                commands.spawn(ShowBangPoint {
+                    x: enemy_transform.translation.x,
+                    y: enemy_transform.translation.y,
+                });
+            }
+        }
     }
 }
