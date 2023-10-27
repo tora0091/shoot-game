@@ -58,6 +58,7 @@ fn main() {
             enemy_shoot_system,
             auto_despawn_system,
             player_shoot_collision_system,
+            enemy_shoot_collision_system,
             shoot_bang_system,
             speed_control_system,
             bevy::window::close_on_esc,
@@ -277,6 +278,7 @@ fn enemy_shoot_system(
                 },
                 Velocity {x: 0.0, y: -SHOOT_VELOCITY * speed_control.value },
                 AutoDespawn,
+                FromEnemyShoot,
             ));
         }
     }
@@ -317,6 +319,9 @@ fn auto_despawn_system(
 
 #[derive(Component)]
 struct FromPlayerShoot;
+
+#[derive(Component)]
+struct FromEnemyShoot;
 
 fn player_shoot_collision_system(
     mut commands: Commands,
@@ -370,6 +375,27 @@ fn player_shoot_collision_system(
                     });
                 });
             }
+        }
+    }
+}
+
+fn enemy_shoot_collision_system(
+    mut commands: Commands,
+    enemy_shoots: Query<(Entity, &Transform), With<FromEnemyShoot>>,
+    player: Query<(Entity, &Transform), With<Player>>, 
+) {
+    let (player_entity, player_transform) = player.single();
+
+    for (enemy_shoot_entity, enemy_shoot_transform) in enemy_shoots.iter() {
+        let is_collide = collide(
+            player_transform.translation,
+            Vec2::new(PLAYER_RADIUS, PLAYER_RADIUS), 
+            enemy_shoot_transform.translation,
+            Vec2::new(SHOOT_RADIUS, SHOOT_RADIUS));
+
+        if is_collide != None {
+            commands.entity(player_entity).despawn();
+            commands.entity(enemy_shoot_entity).despawn();
         }
     }
 }
