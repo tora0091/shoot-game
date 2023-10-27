@@ -61,6 +61,7 @@ fn main() {
             player_shoot_collision_system,
             enemy_shoot_collision_system,
             shoot_bang_system,
+            show_bang_system,
             speed_control_system,
             bevy::window::close_on_esc,
         ))
@@ -164,19 +165,19 @@ fn player_move_system(
         if input.pressed(KeyCode::Up) {
             player_position.y += speed;
         }
-    
+
         if input.pressed(KeyCode::Down) {
             player_position.y -= speed;
         }
-    
+
         if input.pressed(KeyCode::Right) {
             player_position.x += speed;
         }
-    
+
         if input.pressed(KeyCode::Left) {
             player_position.x -= speed;
         }
-    
+
         player_transform.translation = player_position.get_position();
     }
 }
@@ -190,22 +191,22 @@ fn player_in_window_system(
         if player_position.y > top_limit {
             player_position.y = top_limit;
         }
-    
+
         let bottom_limit = window_size_limit.bottom + PLAYER_RADIUS;
         if player_position.y < bottom_limit {
             player_position.y = bottom_limit;
         }
-    
+
         let right_limit = window_size_limit.right - PLAYER_RADIUS;
         if player_position.x > right_limit {
             player_position.x = right_limit;
         }
-    
+
         let light_limit = window_size_limit.left + PLAYER_RADIUS;
         if player_position.x < light_limit {
             player_position.x = light_limit;
         }
-    
+
         player_transform.translation = player_position.get_position();
     }
 }
@@ -352,8 +353,6 @@ fn player_shoot_collision_system(
     player_shoots: Query<(Entity, &Transform), With<FromPlayerShoot>>,
     enemies: Query<(Entity, &Transform), With<Enemy>>,
     mut enemy_spawn: ResMut<EnemySpawn>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    mut materials: ResMut<Assets<ColorMaterial>>,
 ) {
     for (enemy_entity, enemy_transform) in enemies.iter() {
         for (player_shoot_entity, player_shoot_transform) in player_shoots.iter() {
@@ -373,31 +372,7 @@ fn player_shoot_collision_system(
                 let x = enemy_transform.translation.x;
                 let y = enemy_transform.translation.y;
 
-                commands.spawn((
-                    MaterialMesh2dBundle {
-                        mesh: meshes.add(shape::Quad::new(Vec2::new(20.0, 50.0)).into()).into(),
-                        material: materials.add(ColorMaterial::from(Color::RED)),
-                        transform: Transform {
-                            translation: Vec3::new(x, y, 1.0),
-                            rotation: Quat::from_rotation_z(400.0),
-                            ..default()
-                        },
-                        ..default()
-                    },
-                    ShootBang {
-                        timer: Timer::new(Duration::from_secs_f32(0.5), TimerMode::Once),
-                    }
-                )).with_children(|p| {
-                    p.spawn(MaterialMesh2dBundle {
-                        mesh: meshes.add(shape::Quad::new(Vec2::new(20.0, 50.0)).into()).into(),
-                        material: materials.add(ColorMaterial::from(Color::RED)),
-                        transform: Transform {
-                            rotation: Quat::from_rotation_z(20.0),
-                            ..default()
-                        },
-                        ..default()
-                    });
-                });
+                commands.spawn(ShowBangPoint {x, y});
             }
         }
     }
@@ -413,19 +388,25 @@ fn enemy_shoot_collision_system(
         for (enemy_shoot_entity, enemy_shoot_transform) in enemy_shoots.iter() {
             let is_collide = collide(
                 player_transform.translation,
-                Vec2::new(PLAYER_RADIUS, PLAYER_RADIUS), 
+                Vec2::new(PLAYER_RADIUS, PLAYER_RADIUS),
                 enemy_shoot_transform.translation,
                 Vec2::new(SHOOT_RADIUS, SHOOT_RADIUS));
-    
+
             if is_collide != None {
                 commands.entity(player_entity).despawn();
 
                 player_spawn.is_spawn = true;
                 player_spawn.timer = Timer::from_seconds(3.0, TimerMode::Once);
 
+                // player bang
+                commands.spawn(ShowBangPoint {
+                    x: player_transform.translation.x,
+                    y: player_transform.translation.y,
+                });
+
                 commands.entity(enemy_shoot_entity).despawn();
             }
-        }    
+        }
     }
 }
 
@@ -443,6 +424,49 @@ fn shoot_bang_system(
         if shoot_bang.timer.tick(time.delta()).just_finished() {
             commands.entity(entity).despawn_recursive();
         }
+    }
+}
+
+#[derive(Component)]
+struct ShowBangPoint {
+    x: f32,
+    y: f32,
+}
+
+fn show_bang_system(
+    mut commands: Commands,
+    mut meshes: ResMut<Assets<Mesh>>,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    query: Query<(Entity, &ShowBangPoint)>,
+) {
+    for (entity, show_bang_point) in query.iter() {
+        commands.spawn((
+            MaterialMesh2dBundle {
+                mesh: meshes.add(shape::Quad::new(Vec2::new(20.0, 50.0)).into()).into(),
+                material: materials.add(ColorMaterial::from(Color::RED)),
+                transform: Transform {
+                    translation: Vec3::new(show_bang_point.x, show_bang_point.y, 1.0),
+                    rotation: Quat::from_rotation_z(400.0),
+                    ..default()
+                },
+                ..default()
+            },
+            ShootBang {
+                timer: Timer::new(Duration::from_secs_f32(0.5), TimerMode::Once),
+            }
+        )).with_children(|p| {
+            p.spawn(MaterialMesh2dBundle {
+                mesh: meshes.add(shape::Quad::new(Vec2::new(20.0, 50.0)).into()).into(),
+                material: materials.add(ColorMaterial::from(Color::RED)),
+                transform: Transform {
+                    rotation: Quat::from_rotation_z(20.0),
+                    ..default()
+                },
+                ..default()
+            });
+        });
+
+        commands.entity(entity).despawn();
     }
 }
 
