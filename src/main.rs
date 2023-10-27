@@ -132,6 +132,8 @@ fn player_spawn_system(
             },
             player,
         ));
+
+        player_spawn.is_spawn = false;
     }
 }
 
@@ -404,7 +406,8 @@ fn player_shoot_collision_system(
 fn enemy_shoot_collision_system(
     mut commands: Commands,
     enemy_shoots: Query<(Entity, &Transform), With<FromEnemyShoot>>,
-    player: Query<(Entity, &Transform), With<Player>>, 
+    player: Query<(Entity, &Transform), With<Player>>,
+    mut player_spawn: ResMut<PlayerSpawn>,
 ) {
     if let Ok((player_entity, player_transform)) = player.get_single() {
         for (enemy_shoot_entity, enemy_shoot_transform) in enemy_shoots.iter() {
@@ -416,6 +419,10 @@ fn enemy_shoot_collision_system(
     
             if is_collide != None {
                 commands.entity(player_entity).despawn();
+
+                player_spawn.is_spawn = true;
+                player_spawn.timer = Timer::from_seconds(3.0, TimerMode::Once);
+
                 commands.entity(enemy_shoot_entity).despawn();
             }
         }    
