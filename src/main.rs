@@ -51,6 +51,7 @@ fn main() {
         .add_systems(Startup, setup_system)
         .add_systems(FixedUpdate, player_in_window_system)
         .add_systems(Update, (
+            player_spawn_system,
             player_move_system,
             player_shoot_system,
             auto_move_system,
@@ -68,8 +69,6 @@ fn main() {
 
 fn setup_system(
     mut commands: Commands,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
     query: Query<&Window>,
 ) {
     // camera
@@ -91,26 +90,49 @@ fn setup_system(
     // speed control
     commands.insert_resource(SpeedControl { value: 1.0 });
 
-    // set player init position
-    let player = Player {
-        x: 0.0,
-        y: -height + PLAYER_RADIUS,
-        z: 10.0,
-    };
+    // player spawn
+    commands.insert_resource(PlayerSpawn {
+        is_spawn: true,
+        timer: Timer::from_seconds(1.0, TimerMode::Once),
+    });
+ }
 
-    // player
-    commands.spawn(
-        (MaterialMesh2dBundle {
-            mesh: meshes.add(shape::Circle::new(PLAYER_RADIUS).into()).into(),
-            material: materials.add(ColorMaterial::from(Color::BLUE)),
-            transform: Transform {
-                translation: Vec3::new(player.x, player.y, player.z),
+#[derive(Resource)]
+struct PlayerSpawn {
+    is_spawn: bool,
+    timer: Timer,
+}
+
+fn player_spawn_system(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    window_size_limit: Res<WindowSizeLimit>,
+    mut player_spawn: ResMut<PlayerSpawn>,
+    time: Res<Time>,
+) {
+    if player_spawn.is_spawn == true && player_spawn.timer.tick(time.delta()).just_finished() {
+        // set player init position
+        let player = Player {
+            x: 0.0,
+            y: window_size_limit.bottom + PLAYER_RADIUS,
+            z: 10.0,
+        };
+
+        // player
+        commands.spawn(
+            (MaterialMesh2dBundle {
+                mesh: meshes.add(shape::Circle::new(PLAYER_RADIUS).into()).into(),
+                material: materials.add(ColorMaterial::from(Color::BLUE)),
+                transform: Transform {
+                    translation: Vec3::new(player.x, player.y, player.z),
+                    ..default()
+                },
                 ..default()
             },
-            ..default()
-        },
-        player,
-    ));
+            player,
+        ));
+    }
 }
 
 #[derive(Component)]
@@ -195,20 +217,20 @@ fn player_shoot_system(
     speed_control: Res<SpeedControl>,
 ) {
     if input.just_pressed(KeyCode::Space) {
-        let player_position = query.single();
-
-        // player shoot
-        commands.spawn(
-            (MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
-                material: materials.add(ColorMaterial::from(Color::RED)),
-                transform: Transform::from_translation(player_position.set_z_position(0.0)),
-                ..default()
-            },
-            Velocity { x: 0.0, y: SHOOT_VELOCITY * speed_control.value },
-            AutoDespawn,
-            FromPlayerShoot,
-        ));
+        if let Ok(player_position) = query.get_single() {
+            // player shoot
+            commands.spawn(
+                (MaterialMesh2dBundle {
+                    mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
+                    material: materials.add(ColorMaterial::from(Color::RED)),
+                    transform: Transform::from_translation(player_position.set_z_position(0.0)),
+                    ..default()
+                },
+                Velocity { x: 0.0, y: SHOOT_VELOCITY * speed_control.value },
+                AutoDespawn,
+                FromPlayerShoot,
+            ));
+        }
     }
 }
 
