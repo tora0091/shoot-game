@@ -134,56 +134,56 @@ fn player_move_system(
     mut query: Query<(&mut Transform, &mut Player)>,
     speed_control: Res<SpeedControl>,
 ) {
-    let (mut player_transform, mut player_position) = query.single_mut();
+    if let Ok((mut player_transform, mut player_position)) = query.get_single_mut() {
+        let speed = PLAYER_VELOCITY * speed_control.value;
 
-    let speed = PLAYER_VELOCITY * speed_control.value;
-
-    if input.pressed(KeyCode::Up) {
-        player_position.y += speed;
+        if input.pressed(KeyCode::Up) {
+            player_position.y += speed;
+        }
+    
+        if input.pressed(KeyCode::Down) {
+            player_position.y -= speed;
+        }
+    
+        if input.pressed(KeyCode::Right) {
+            player_position.x += speed;
+        }
+    
+        if input.pressed(KeyCode::Left) {
+            player_position.x -= speed;
+        }
+    
+        player_transform.translation = player_position.get_position();
     }
-
-    if input.pressed(KeyCode::Down) {
-        player_position.y -= speed;
-    }
-
-    if input.pressed(KeyCode::Right) {
-        player_position.x += speed;
-    }
-
-    if input.pressed(KeyCode::Left) {
-        player_position.x -= speed;
-    }
-
-    player_transform.translation = player_position.get_position();
 }
 
 fn player_in_window_system(
     mut query: Query<(&mut Transform, &mut Player)>,
     window_size_limit: Res<WindowSizeLimit>,
 ) {
-    let (mut player_transform, mut player_position) = query.single_mut();
-
-    let top_limit = window_size_limit.top - PLAYER_RADIUS;
-    if player_position.y > top_limit {
-        player_position.y = top_limit;
+    if let Ok((mut player_transform, mut player_position)) = query.get_single_mut() {
+        let top_limit = window_size_limit.top - PLAYER_RADIUS;
+        if player_position.y > top_limit {
+            player_position.y = top_limit;
+        }
+    
+        let bottom_limit = window_size_limit.bottom + PLAYER_RADIUS;
+        if player_position.y < bottom_limit {
+            player_position.y = bottom_limit;
+        }
+    
+        let right_limit = window_size_limit.right - PLAYER_RADIUS;
+        if player_position.x > right_limit {
+            player_position.x = right_limit;
+        }
+    
+        let light_limit = window_size_limit.left + PLAYER_RADIUS;
+        if player_position.x < light_limit {
+            player_position.x = light_limit;
+        }
+    
+        player_transform.translation = player_position.get_position();
     }
-
-    let bottom_limit = window_size_limit.bottom + PLAYER_RADIUS;
-    if player_position.y < bottom_limit {
-        player_position.y = bottom_limit;
-    }
-
-    let right_limit = window_size_limit.right - PLAYER_RADIUS;
-    if player_position.x > right_limit {
-        player_position.x = right_limit;
-    }
-
-    let light_limit = window_size_limit.left + PLAYER_RADIUS;
-    if player_position.x < light_limit {
-        player_position.x = light_limit;
-    }
-
-    player_transform.translation = player_position.get_position();
 }
 
 fn player_shoot_system(
@@ -384,19 +384,19 @@ fn enemy_shoot_collision_system(
     enemy_shoots: Query<(Entity, &Transform), With<FromEnemyShoot>>,
     player: Query<(Entity, &Transform), With<Player>>, 
 ) {
-    let (player_entity, player_transform) = player.single();
-
-    for (enemy_shoot_entity, enemy_shoot_transform) in enemy_shoots.iter() {
-        let is_collide = collide(
-            player_transform.translation,
-            Vec2::new(PLAYER_RADIUS, PLAYER_RADIUS), 
-            enemy_shoot_transform.translation,
-            Vec2::new(SHOOT_RADIUS, SHOOT_RADIUS));
-
-        if is_collide != None {
-            commands.entity(player_entity).despawn();
-            commands.entity(enemy_shoot_entity).despawn();
-        }
+    if let Ok((player_entity, player_transform)) = player.get_single() {
+        for (enemy_shoot_entity, enemy_shoot_transform) in enemy_shoots.iter() {
+            let is_collide = collide(
+                player_transform.translation,
+                Vec2::new(PLAYER_RADIUS, PLAYER_RADIUS), 
+                enemy_shoot_transform.translation,
+                Vec2::new(SHOOT_RADIUS, SHOOT_RADIUS));
+    
+            if is_collide != None {
+                commands.entity(player_entity).despawn();
+                commands.entity(enemy_shoot_entity).despawn();
+            }
+        }    
     }
 }
 
