@@ -236,7 +236,7 @@ fn enemy_spawn_system(
     let mut rng = rand::thread_rng();
 
     let x = rng.gen_range(window_size_limit.left + ENEMY_RADIUS ..window_size_limit.right - ENEMY_RADIUS);
-    let y = rng.gen_range(window_size_limit.bottom + ENEMY_RADIUS ..window_size_limit.top - ENEMY_RADIUS);
+    let y = rng.gen_range((window_size_limit.bottom + ENEMY_RADIUS) / 2.0 ..window_size_limit.top - ENEMY_RADIUS);
     let shot_interval = rng.gen_range(1.0..5.0);
 
     if enemy_spawn.counter < ENEMY_SPAWN_MAX_COUNTER && enemy_spawn.timer.tick(time.delta()).just_finished() {
