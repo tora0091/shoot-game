@@ -18,7 +18,7 @@ fn player_shoot_collision_system(
     mut commands: Commands,
     player_shoots: Query<(Entity, &Transform), With<FromPlayerShoot>>,
     enemies: Query<(Entity, &Transform), With<Enemy>>,
-    mut enemy_spawn: ResMut<EnemySpawn>,
+    // mut enemy_spawn: ResMut<EnemySpawn>,
 ) {
     for (enemy_entity, enemy_transform) in enemies.iter() {
         for (player_shoot_entity, player_shoot_transform) in player_shoots.iter() {
@@ -33,7 +33,7 @@ fn player_shoot_collision_system(
                 commands.entity(enemy_entity).despawn();
                 commands.entity(player_shoot_entity).despawn();
 
-                enemy_spawn.counter -= 1;
+                // enemy_spawn.counter -= 1;
 
                 let x = enemy_transform.translation.x;
                 let y = enemy_transform.translation.y;

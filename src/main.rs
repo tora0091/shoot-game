@@ -59,4 +59,9 @@ fn setup_system(
         is_spawn: true,
         timer: Timer::from_seconds(1.0, TimerMode::Once),
     });
+
+    // enemy schedule
+    commands.insert_resource(EnemySchedule {
+        enemy_001: Timer::from_seconds(3.0, TimerMode::Once),
+    });
 }

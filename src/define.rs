@@ -47,6 +47,11 @@ pub struct SpeedControl {
     pub value: f32,
 }
 
+#[derive(Resource)]
+pub struct EnemySchedule {
+    pub enemy_001: Timer,
+}
+
 ////////// Component
 
 #[derive(Component)]
