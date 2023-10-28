@@ -62,6 +62,7 @@ fn setup_system(
 
     // enemy schedule
     commands.insert_resource(EnemySchedule {
+        enemy_simulator: Timer::from_seconds(1.0, TimerMode::Once),
         enemy_001: Timer::from_seconds(3.0, TimerMode::Once),
     });
 }

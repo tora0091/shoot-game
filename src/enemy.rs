@@ -1,3 +1,5 @@
+use std::f32::consts::PI;
+
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use rand::Rng;
 
@@ -10,7 +12,9 @@ impl Plugin for EnemyPlugin {
         app.add_systems(Update, (
             // enemy_spawn_system,
             enemy_shoot_system,
-            enemy_spawn_system_001,
+            // enemy_spawn_system_001,
+            enemy_spawn_simulator,
+            enemy_move_simulator,
         ));
     }
 }
@@ -39,7 +43,7 @@ fn enemy_spawn_system(
                 ..default()
             },
             Enemy {
-                x, y, shoot_interval: Timer::from_seconds(shot_interval as f32, TimerMode::Repeating),
+                shoot_interval: Timer::from_seconds(shot_interval as f32, TimerMode::Repeating),
             },
             AutoDespawn,
         ));
@@ -107,11 +111,55 @@ fn enemy_spawn_system_001(
                     ..default()
                 },
                 Enemy {
-                    x: position.x, y: position.y, shoot_interval: Timer::from_seconds(1.0, TimerMode::Repeating),
+                    shoot_interval: Timer::from_seconds(1.0, TimerMode::Repeating),
                 },
                 AutoDespawn,
                 Velocity {x: 0.0, y: -1.0},
             ));
         }
+    }
+}
+
+fn enemy_spawn_simulator(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    window_size_limit: Res<WindowSizeLimit>,
+    mut enemy_schedule: ResMut<EnemySchedule>,
+    time: Res<Time>,
+) {
+    if enemy_schedule.enemy_simulator.tick(time.elapsed()).just_finished() {
+        let x = 0.0;
+        let y = window_size_limit.top - 30.0;
+
+        // enemy
+        commands.spawn((
+            MaterialMesh2dBundle {
+                mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
+                material: materials.add(ColorMaterial::from(Color::GREEN)),
+                transform: Transform::from_xyz(x, y, 9.0),
+                ..default()
+            },
+            Enemy {
+                shoot_interval: Timer::from_seconds(1.0, TimerMode::Repeating),
+            },
+            AutoDespawn,
+            Velocity {x: 0.0, y: -1.0},
+            EnemySimulator,
+        ));
+    }
+}
+
+#[derive(Component)]
+struct EnemySimulator;
+
+fn enemy_move_simulator(
+    mut query: Query<&mut Velocity, With<EnemySimulator>>,
+    time: Res<Time>,
+) {
+    let x = PI * (time.elapsed_seconds() % 60.0).sin();
+
+    for mut velocity in query.iter_mut() {
+        velocity.x = x;
     }
 }

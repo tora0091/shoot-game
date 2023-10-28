@@ -49,6 +49,7 @@ pub struct SpeedControl {
 
 #[derive(Resource)]
 pub struct EnemySchedule {
+    pub enemy_simulator: Timer,
     pub enemy_001: Timer,
 }
 
@@ -78,8 +79,8 @@ impl Player {
 
 #[derive(Component)]
 pub struct Enemy {
-    pub x: f32,
-    pub y: f32,
+    // pub x: f32,
+    // pub y: f32,
     pub shoot_interval: Timer,
 }
 
