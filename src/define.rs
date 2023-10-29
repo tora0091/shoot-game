@@ -49,7 +49,8 @@ pub struct SpeedControl {
 
 #[derive(Resource)]
 pub struct EnemySchedule {
-    pub enemy_simulator: Timer,
+    pub enemy_pattern001: Timer,
+    pub enemy_pattern002: Timer,
     pub enemy_001: Timer,
 }
 

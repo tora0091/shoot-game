@@ -81,7 +81,7 @@ fn player_enemy_collision_system(
     player: Query<(Entity, &Transform), With<Player>>,
     enemy: Query<(Entity, &Transform), With<Enemy>>,
     mut player_spawn: ResMut<PlayerSpawn>,
-    mut enemy_spawn: ResMut<EnemySpawn>,
+    // mut enemy_spawn: ResMut<EnemySpawn>,
 ) {
     if let Ok((player_entity, player_transform)) = player.get_single() {
         for (enemy_entity, enemy_transform) in enemy.iter() {
@@ -101,7 +101,7 @@ fn player_enemy_collision_system(
                 });
 
                 commands.entity(enemy_entity).despawn();
-                enemy_spawn.counter -= 1;
+                // enemy_spawn.counter -= 1;
                 commands.spawn(ShowBangPoint {
                     x: enemy_transform.translation.x,
                     y: enemy_transform.translation.y,

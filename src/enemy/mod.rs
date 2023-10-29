@@ -1,20 +1,33 @@
-use std::f32::consts::PI;
-
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use rand::Rng;
 
 use crate::{WindowSizeLimit, EnemySpawn, ENEMY_RADIUS, ENEMY_SPAWN_MAX_COUNTER, Enemy, AutoDespawn, SpeedControl, SHOOT_RADIUS, SHOOT_VELOCITY, Velocity, FromEnemyShoot, define::EnemySchedule};
 
+use self::formations::*;
+
+mod formations;
 pub struct EnemyPlugin;
 
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (
-            // enemy_spawn_system,
-            enemy_shoot_system,
-            // enemy_spawn_system_001,
-            enemy_spawn_simulator,
-            enemy_move_simulator,
+        app
+            .insert_resource(
+                EnemySchedule {
+                    enemy_pattern001: Timer::from_seconds(1.0, TimerMode::Once),
+                    enemy_pattern002: Timer::from_seconds(14.0, TimerMode::Once),
+                    enemy_001: Timer::from_seconds(3.0, TimerMode::Once),
+                }
+            )
+            .add_systems(Update, (
+                // enemy_spawn_system,
+                enemy_shoot_system,
+                // enemy_spawn_system_001,
+
+                enemy_spawn_pattern001,
+                enemy_move_pattern001,
+
+                enemy_spawn_pattern002.after(enemy_spawn_pattern001),
+                enemy_move_pattern002,
         ));
     }
 }
@@ -117,49 +130,5 @@ fn enemy_spawn_system_001(
                 Velocity {x: 0.0, y: -1.0},
             ));
         }
-    }
-}
-
-fn enemy_spawn_simulator(
-    mut commands: Commands,
-    mut materials: ResMut<Assets<ColorMaterial>>,
-    mut meshes: ResMut<Assets<Mesh>>,
-    window_size_limit: Res<WindowSizeLimit>,
-    mut enemy_schedule: ResMut<EnemySchedule>,
-    time: Res<Time>,
-) {
-    if enemy_schedule.enemy_simulator.tick(time.elapsed()).just_finished() {
-        let x = 0.0;
-        let y = window_size_limit.top - 30.0;
-
-        // enemy
-        commands.spawn((
-            MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
-                material: materials.add(ColorMaterial::from(Color::GREEN)),
-                transform: Transform::from_xyz(x, y, 9.0),
-                ..default()
-            },
-            Enemy {
-                shoot_interval: Timer::from_seconds(1.0, TimerMode::Repeating),
-            },
-            AutoDespawn,
-            Velocity {x: 0.0, y: -1.0},
-            EnemySimulator,
-        ));
-    }
-}
-
-#[derive(Component)]
-struct EnemySimulator;
-
-fn enemy_move_simulator(
-    mut query: Query<&mut Velocity, With<EnemySimulator>>,
-    time: Res<Time>,
-) {
-    let x = PI * (time.elapsed_seconds() % 60.0).sin();
-
-    for mut velocity in query.iter_mut() {
-        velocity.x = x;
     }
 }
