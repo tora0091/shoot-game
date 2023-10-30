@@ -27,7 +27,10 @@ fn main() {
         .add_plugins(CollisionPlugin)
         .add_plugins(CommonPlugin)
         .add_systems(Startup, setup_system)
-        .add_systems(Update, bevy::window::close_on_esc)
+        .add_systems(Update, (
+            game_timer_system,
+            bevy::window::close_on_esc
+        ))
         .run();
 }
 
@@ -59,4 +62,19 @@ fn setup_system(
         is_spawn: true,
         timer: Timer::from_seconds(1.0, TimerMode::Once),
     });
+
+    // set game timer
+    commands.insert_resource(GameTimer {
+        timer: Timer::from_seconds(1.0, TimerMode::Repeating),
+        seconds: 0,
+    });
+}
+
+fn game_timer_system(
+    mut game_timer: ResMut<GameTimer>,
+    time: Res<Time>,
+) {
+    if game_timer.timer.tick(time.delta()).just_finished() {
+        game_timer.seconds += 1;
+    }
 }
