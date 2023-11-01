@@ -3,7 +3,7 @@ use std::f32::consts::PI;
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use rand::Rng;
 
-use crate::define::{WindowSizeLimit, EnemySchedule, ENEMY_RADIUS, Enemy, AutoDespawn, Velocity};
+use crate::define::{WindowSizeLimit, ENEMY_RADIUS, Enemy, AutoDespawn, Velocity, GameTimer};
 
 #[derive(Component)]
 pub struct EnemyMovePattern001;
@@ -11,17 +11,27 @@ pub struct EnemyMovePattern001;
 #[derive(Component)]
 pub struct EnemyMovePattern002;
 
+#[derive(Component)]
+pub struct EnemyMovePattern003 {
+    counter: u32,
+}
 
+#[derive(Resource)]
+pub struct EnemySchedule {
+    pub enemy_pattern_001: u64,
+    pub enemy_pattern_002: u64,
+    pub enemy_pattern_003: u64,
+}
 
-pub fn enemy_spawn_pattern001(
+pub fn enemy_spawn_pattern_001(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     window_size_limit: Res<WindowSizeLimit>,
-    mut enemy_schedule: ResMut<EnemySchedule>,
-    time: Res<Time>,
+    enemy_schedule: ResMut<EnemySchedule>,
+    game_timer: Res<GameTimer>,
 ) {
-    if enemy_schedule.enemy_pattern001.tick(time.elapsed()).just_finished() {
+    if enemy_schedule.enemy_pattern_001 == game_timer.seconds {
         let x = 0.0;
         let y = window_size_limit.top - 30.0;
 
@@ -43,7 +53,7 @@ pub fn enemy_spawn_pattern001(
     }
 }
 
-pub fn enemy_move_pattern001(
+pub fn enemy_move_pattern_001(
     mut query: Query<&mut Velocity, With<EnemyMovePattern001>>,
     time: Res<Time>,
 ) {
@@ -54,16 +64,15 @@ pub fn enemy_move_pattern001(
     }
 }
 
-
-pub fn enemy_spawn_pattern002(
+pub fn enemy_spawn_pattern_002(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     window_size_limit: Res<WindowSizeLimit>,
-    mut enemy_schedule: ResMut<EnemySchedule>,
-    time: Res<Time>,
+    enemy_schedule: ResMut<EnemySchedule>,
+    game_timer: Res<GameTimer>,
 ) {
-    if enemy_schedule.enemy_pattern002.tick(time.elapsed()).just_finished() {
+    if enemy_schedule.enemy_pattern_002 == game_timer.seconds {
         let x = 0.0;
         let y = window_size_limit.top - 30.0;
 
@@ -85,7 +94,7 @@ pub fn enemy_spawn_pattern002(
     }
 }
 
-pub fn enemy_move_pattern002(
+pub fn enemy_move_pattern_002(
     mut query: Query<&mut Velocity, With<EnemyMovePattern002>>,
 ) {
     let mut rng = rand::thread_rng();
@@ -94,5 +103,58 @@ pub fn enemy_move_pattern002(
 
     for mut velocity in query.iter_mut() {
         velocity.x = x;
+    }
+}
+
+pub fn enemy_spawn_pattern_003(
+    mut commands: Commands,
+    mut materials: ResMut<Assets<ColorMaterial>>,
+    mut meshes: ResMut<Assets<Mesh>>,
+    window_size_limit: Res<WindowSizeLimit>,
+    enemy_schedule: ResMut<EnemySchedule>,
+    game_timer: Res<GameTimer>,
+) {
+    if enemy_schedule.enemy_pattern_003 == game_timer.seconds {
+        let x = 0.0;
+        let y = window_size_limit.top - 30.0;
+
+        // enemy
+        commands.spawn((
+            MaterialMesh2dBundle {
+                mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
+                material: materials.add(ColorMaterial::from(Color::GREEN)),
+                transform: Transform::from_xyz(x, y, 9.0),
+                ..default()
+            },
+            Enemy {
+                shoot_interval: Timer::from_seconds(1.0, TimerMode::Repeating),
+            },
+            AutoDespawn,
+            Velocity {x: 0.0, y: -1.0},
+            EnemyMovePattern003 {counter: 0},
+        ));
+    }
+}
+
+pub fn enemy_move_pattern_003(
+    mut query: Query<(&mut Velocity, &mut EnemyMovePattern003)>,
+) {
+
+    let mut m = -1.0;
+    for (mut velocity, mut enemy_pattern) in query.iter_mut() {
+
+        let a = enemy_pattern.counter % 200;
+
+        if a == 0 {
+            // velocity.x = 150.0;
+            m = 1.0;
+        } else if a == 100 {
+            // velocity.x = -150.0;
+            m = -1.0;
+        } else {
+            velocity.x += 1.0 * m;
+        }
+
+        enemy_pattern.counter += 1;
     }
 }
