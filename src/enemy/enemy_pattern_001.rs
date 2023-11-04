@@ -27,7 +27,7 @@ pub fn enemy_spawn_pattern_001(
     game_timer: Res<GameTimer>,
 ) {
     if EnemySchedule::is_ready(&mut enemy_schedule.enemy_pattern_001, game_timer.seconds) {
-        let y = window_size_limit.top - 30.0;
+        let y = window_size_limit.top + 30.0;
         let x = window_size_limit.right / 3.0;
 
         let enemy_positions = [

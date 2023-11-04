@@ -28,35 +28,34 @@ pub fn enemy_spawn_pattern_002(
     game_timer: Res<GameTimer>,
 ) {
     if EnemySchedule::is_ready(&mut enemy_schedule.enemy_pattern_002, game_timer.seconds) {
-        let x = 0.0;
-        let y = window_size_limit.top - 30.0;
+        let y = window_size_limit.top + 30.0;
 
         // enemy
         commands.spawn((
             MaterialMesh2dBundle {
                 mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
                 material: materials.add(ColorMaterial::from(Color::GREEN)),
-                transform: Transform::from_xyz(x, y, 9.0),
+                transform: Transform::from_xyz(0.0, y, 9.0),
                 ..default()
             },
             Enemy {
                 shoot_interval: Timer::from_seconds(1.0, TimerMode::Repeating),
             },
             AutoDespawn,
-            Velocity {x: 0.0, y: -1.0},
+            Velocity {x: 0.0, y: -0.5},
             EnemyMovePattern002,
         ));
     }
 }
 
 pub fn enemy_move_pattern_002(
-    mut query: Query<&mut Velocity, With<EnemyMovePattern002>>,
+    mut query: Query<(&mut Velocity, &Transform), With<EnemyMovePattern002>>,
+    time: Res<Time>,
 ) {
-    let mut rng = rand::thread_rng();
+    let sin = time.elapsed_seconds().sin();
 
-    let x = rng.gen_range(-10.0..10.0);
-
-    for mut velocity in query.iter_mut() {
-        velocity.x = x;
+    let x = sin * 100.0;
+    for (mut velocity, transform) in query.iter_mut() {
+        velocity.x = x - transform.translation.x;
     }
 }
