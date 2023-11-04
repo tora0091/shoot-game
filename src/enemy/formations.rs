@@ -5,6 +5,8 @@ use rand::Rng;
 
 use crate::define::{WindowSizeLimit, ENEMY_RADIUS, Enemy, AutoDespawn, Velocity, GameTimer};
 
+use super::EnemySchedule;
+
 #[derive(Component)]
 pub struct EnemyMovePattern001;
 
@@ -16,22 +18,15 @@ pub struct EnemyMovePattern003 {
     counter: u32,
 }
 
-#[derive(Resource)]
-pub struct EnemySchedule {
-    pub enemy_pattern_001: u64,
-    pub enemy_pattern_002: u64,
-    pub enemy_pattern_003: u64,
-}
-
 pub fn enemy_spawn_pattern_001(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     window_size_limit: Res<WindowSizeLimit>,
-    enemy_schedule: ResMut<EnemySchedule>,
+    mut enemy_schedule: ResMut<EnemySchedule>,
     game_timer: Res<GameTimer>,
 ) {
-    if enemy_schedule.enemy_pattern_001 == game_timer.seconds {
+    if enemy_schedule.enemy_pattern_001.seconds == game_timer.seconds && enemy_schedule.enemy_pattern_001.enable {
         let x = 0.0;
         let y = window_size_limit.top - 30.0;
 
@@ -50,6 +45,8 @@ pub fn enemy_spawn_pattern_001(
             Velocity {x: 0.0, y: -1.0},
             EnemyMovePattern001,
         ));
+
+        enemy_schedule.enemy_pattern_001.enable = false;
     }
 }
 
@@ -69,10 +66,10 @@ pub fn enemy_spawn_pattern_002(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     window_size_limit: Res<WindowSizeLimit>,
-    enemy_schedule: ResMut<EnemySchedule>,
+    mut enemy_schedule: ResMut<EnemySchedule>,
     game_timer: Res<GameTimer>,
 ) {
-    if enemy_schedule.enemy_pattern_002 == game_timer.seconds {
+    if enemy_schedule.enemy_pattern_002.seconds == game_timer.seconds && enemy_schedule.enemy_pattern_002.enable {
         let x = 0.0;
         let y = window_size_limit.top - 30.0;
 
@@ -91,6 +88,8 @@ pub fn enemy_spawn_pattern_002(
             Velocity {x: 0.0, y: -1.0},
             EnemyMovePattern002,
         ));
+
+        enemy_schedule.enemy_pattern_002.enable = false;
     }
 }
 
@@ -111,10 +110,10 @@ pub fn enemy_spawn_pattern_003(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     window_size_limit: Res<WindowSizeLimit>,
-    enemy_schedule: ResMut<EnemySchedule>,
+    mut enemy_schedule: ResMut<EnemySchedule>,
     game_timer: Res<GameTimer>,
 ) {
-    if enemy_schedule.enemy_pattern_003 == game_timer.seconds {
+    if enemy_schedule.enemy_pattern_003.seconds == game_timer.seconds && enemy_schedule.enemy_pattern_003.enable {
         let x = 0.0;
         let y = window_size_limit.top - 30.0;
 
@@ -133,6 +132,8 @@ pub fn enemy_spawn_pattern_003(
             Velocity {x: 0.0, y: -1.0},
             EnemyMovePattern003 {counter: 0},
         ));
+
+        enemy_schedule.enemy_pattern_003.enable = false;
     }
 }
 

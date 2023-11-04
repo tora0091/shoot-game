@@ -7,14 +7,26 @@ use self::formations::*;
 mod formations;
 pub struct EnemyPlugin;
 
+#[derive(Resource)]
+pub struct EnemySchedule {
+    pub enemy_pattern_001: EnemyScheduleValue,
+    pub enemy_pattern_002: EnemyScheduleValue,
+    pub enemy_pattern_003: EnemyScheduleValue,
+}
+
+pub struct EnemyScheduleValue {
+    seconds: u64,
+    enable: bool,
+}
+
 impl Plugin for EnemyPlugin {
     fn build(&self, app: &mut App) {
         app
             .insert_resource(
                 EnemySchedule {
-                    enemy_pattern_001: 5,
-                    enemy_pattern_002: 10,
-                    enemy_pattern_003: 15,
+                    enemy_pattern_001: EnemyScheduleValue { seconds: 5, enable: true },
+                    enemy_pattern_002: EnemyScheduleValue { seconds: 10, enable: true },
+                    enemy_pattern_003: EnemyScheduleValue { seconds: 15, enable: true },
                 }
             )
             .add_systems(Update, (
