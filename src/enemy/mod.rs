@@ -2,9 +2,12 @@ use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
 use crate::{Enemy, AutoDespawn, SpeedControl, SHOOT_RADIUS, SHOOT_VELOCITY, Velocity, FromEnemyShoot};
 
-use self::formations::*;
+use self::{enemy_pattern_001::EnemyPattern001, enemy_pattern_002::EnemyPattern002, enemy_pattern_003::EnemyPattern003};
 
-mod formations;
+mod enemy_pattern_001;
+mod enemy_pattern_002;
+mod enemy_pattern_003;
+
 pub struct EnemyPlugin;
 
 #[derive(Resource)]
@@ -29,18 +32,10 @@ impl Plugin for EnemyPlugin {
                     enemy_pattern_003: EnemyScheduleValue { seconds: 15, enable: true },
                 }
             )
-            .add_systems(Update, (
-                enemy_shoot_system,
-
-                enemy_spawn_pattern_001,
-                enemy_move_pattern_001,
-
-                enemy_spawn_pattern_002,
-                enemy_move_pattern_002,
-
-                enemy_spawn_pattern_003,
-                enemy_move_pattern_003,
-        ));
+            .add_plugins(EnemyPattern001)
+            .add_plugins(EnemyPattern002)
+            .add_plugins(EnemyPattern003)
+            .add_systems(Update, enemy_shoot_system);
     }
 }
 
