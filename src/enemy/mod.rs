@@ -17,6 +17,16 @@ pub struct EnemySchedule {
     pub enemy_pattern_003: EnemyScheduleValue,
 }
 
+impl EnemySchedule {
+    pub fn is_ready(enemy_schedule_value: &mut EnemyScheduleValue, game_time_seconds: u64) -> bool {
+        if enemy_schedule_value.enable && enemy_schedule_value.seconds == game_time_seconds {
+            enemy_schedule_value.enable = false;
+            return true;
+        }
+        return false;
+    }
+}
+
 pub struct EnemyScheduleValue {
     seconds: u64,
     enable: bool,

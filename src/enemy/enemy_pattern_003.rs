@@ -28,7 +28,7 @@ pub fn enemy_spawn_pattern_003(
     mut enemy_schedule: ResMut<EnemySchedule>,
     game_timer: Res<GameTimer>,
 ) {
-    if enemy_schedule.enemy_pattern_003.seconds == game_timer.seconds && enemy_schedule.enemy_pattern_003.enable {
+    if EnemySchedule::is_ready(&mut enemy_schedule.enemy_pattern_003, game_timer.seconds) {
         let x = 0.0;
         let y = window_size_limit.top - 30.0;
 

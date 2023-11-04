@@ -78,8 +78,6 @@ impl Player {
 
 #[derive(Component)]
 pub struct Enemy {
-    // pub x: f32,
-    // pub y: f32,
     pub shoot_interval: Timer,
 }
 
