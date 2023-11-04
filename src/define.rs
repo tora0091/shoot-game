@@ -4,10 +4,10 @@ pub const WINDOW_SIZE_WIDTH: f32 = 400.0;
 pub const WINDOW_SIZE_HEIGHT: f32 = 720.0;
 pub const WINDOW_SIZE_MARGIN: f32 = 100.0;
 
-pub const PLAYER_RADIUS: f32 = 20.0;
+pub const PLAYER_RADIUS: f32 = 14.0;
 pub const PLAYER_VELOCITY: f32 = 3.0;
 
-pub const ENEMY_RADIUS: f32 = 25.0;
+pub const ENEMY_RADIUS: f32 = 15.0;
 pub const ENEMY_SPAWN_DURATION_SECONDS: f32 = 1.0;
 
 pub const SHOOT_VELOCITY: f32 = 3.0;
