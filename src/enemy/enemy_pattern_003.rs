@@ -47,8 +47,6 @@ pub fn enemy_spawn_pattern_003(
             Velocity {x: 0.0, y: -1.0},
             EnemyMovePattern003 {counter: 0},
         ));
-
-        enemy_schedule.enemy_pattern_003.enable = false;
     }
 }
 
