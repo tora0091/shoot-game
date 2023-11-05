@@ -38,8 +38,8 @@ impl Plugin for EnemyPlugin {
             .insert_resource(
                 EnemySchedule {
                     enemy_pattern_001: EnemyScheduleValue { seconds: 5, enable: true },
-                    enemy_pattern_002: EnemyScheduleValue { seconds: 10, enable: true },
-                    enemy_pattern_003: EnemyScheduleValue { seconds: 15, enable: true },
+                    enemy_pattern_002: EnemyScheduleValue { seconds: 15, enable: true },
+                    enemy_pattern_003: EnemyScheduleValue { seconds: 30, enable: true },
                 }
             )
             .add_plugins(EnemyPattern001)
