@@ -19,7 +19,9 @@ impl Plugin for EnemyPattern004 {
 }
 
 #[derive(Component)]
-pub struct EnemyMovePattern004;
+pub struct EnemyMovePattern004 {
+    base_y: f32,
+}
 
 pub fn enemy_spawn_pattern_004(
     mut commands: Commands,
@@ -35,7 +37,7 @@ pub fn enemy_spawn_pattern_004(
         let shot_duration = rng.gen_range(1.0..3.0);
 
         let x = 0.0;
-        let y = window_size_limit.top + 30.0;
+        let y = window_size_limit.top + 80.0;
 
         // enemy
         commands.spawn((
@@ -49,14 +51,16 @@ pub fn enemy_spawn_pattern_004(
                 shoot_interval: Timer::from_seconds(shot_duration, TimerMode::Repeating),
             },
             AutoDespawn,
-            Velocity {x: 0.0, y: -10.0},
-            EnemyMovePattern004,
+            Velocity {x: 0.0, y: -0.5},
+            EnemyMovePattern004 {
+                base_y: y,
+            },
         ));
     }
 }
 
 pub fn enemy_move_pattern_004(
-    mut query: Query<(&mut Velocity, &mut Transform), With<EnemyMovePattern004>>,
+    mut query: Query<(&Velocity, &mut Transform, &mut EnemyMovePattern004), With<EnemyMovePattern004>>,
     time: Res<Time>,
 ) {
     let theta = (time.elapsed_seconds() * 100.0) % 360.0;
@@ -66,8 +70,9 @@ pub fn enemy_move_pattern_004(
     let x = radian.cos() * 100.0;
     let y = radian.sin() * 100.0;
 
-    for (mut _velocity, mut transform) in query.iter_mut() {
-        let (_org_x, _org_y) = (transform.translation.x, transform.translation.y);
-        (transform.translation.x, transform.translation.y) = (x, y);
+    for (velocity, mut transform, mut enemy_move) in query.iter_mut() {
+        transform.translation.x = x;
+        transform.translation.y = enemy_move.base_y + y;
+        enemy_move.base_y += velocity.y;
     }
 }
