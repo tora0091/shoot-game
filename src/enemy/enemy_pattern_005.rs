@@ -7,23 +7,23 @@ use crate::define::*;
 
 use super::EnemySchedule;
 
-pub struct EnemyPattern004;
+pub struct EnemyPattern005;
 
-impl Plugin for EnemyPattern004 {
+impl Plugin for EnemyPattern005 {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, (
-            enemy_spawn_pattern_004,
-            enemy_move_pattern_004,
+            enemy_spawn_pattern_005,
+            enemy_move_pattern_005,
         ));
     }
 }
 
 #[derive(Component)]
-pub struct EnemyMovePattern004 {
+pub struct EnemyMovePattern005 {
     base_y: f32,
 }
 
-pub fn enemy_spawn_pattern_004(
+pub fn enemy_spawn_pattern_005(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -33,11 +33,11 @@ pub fn enemy_spawn_pattern_004(
 ) {
     let mut rng = rand::thread_rng();
 
-    if EnemySchedule::is_ready(&mut enemy_schedule.enemy_pattern_004, game_timer.seconds) {
+    if EnemySchedule::is_ready(&mut enemy_schedule.enemy_pattern_005, game_timer.seconds) {
         let shot_duration = rng.gen_range(1.0..3.0);
 
-        let x = 0.0;
-        let y = window_size_limit.top + 30.0;
+        let x = window_size_limit.left - 50.0;
+        let y = 10.0;
 
         // enemy
         commands.spawn((
@@ -51,28 +51,21 @@ pub fn enemy_spawn_pattern_004(
                 shoot_interval: Timer::from_seconds(shot_duration, TimerMode::Repeating),
             },
             AutoDespawn,
-            Velocity {x: 0.0, y: -0.5},
-            EnemyMovePattern004 {
+            Velocity {x: 0.5, y: 0.0},
+            EnemyMovePattern005 {
                 base_y: y,
             },
         ));
     }
 }
 
-pub fn enemy_move_pattern_004(
-    mut query: Query<(&Velocity, &mut Transform, &mut EnemyMovePattern004), With<EnemyMovePattern004>>,
+pub fn enemy_move_pattern_005(
+    mut query: Query<(&mut Transform, &mut EnemyMovePattern005), With<EnemyMovePattern005>>,
     time: Res<Time>,
 ) {
-    let theta = (time.elapsed_seconds() * 100.0) % 360.0;
+    let sin = time.elapsed_seconds().sin() * 100.0;
 
-    let radian = 2.0 * PI * (theta / 360.0);
-
-    let x = radian.cos() * 100.0;
-    let y = radian.sin() * 100.0;
-
-    for (velocity, mut transform, mut enemy_move) in query.iter_mut() {
-        transform.translation.x = x;
-        transform.translation.y = enemy_move.base_y + y;
-        enemy_move.base_y += velocity.y;
+    for (mut transform, enemy_move) in query.iter_mut() {
+        transform.translation.y = enemy_move.base_y + sin.abs();
     }
 }
