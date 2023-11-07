@@ -1,5 +1,3 @@
-use std::f32::consts::PI;
-
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 use rand::Rng;
 
