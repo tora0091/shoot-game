@@ -32,28 +32,45 @@ pub fn enemy_spawn_pattern_005(
     let mut rng = rand::thread_rng();
 
     if EnemySchedule::is_ready(&mut enemy_schedule.enemy_pattern_005, game_timer.seconds) {
-        let shot_duration = rng.gen_range(1.0..3.0);
+        struct Position {
+            x: f32,
+            y: f32,
+            velocity_x: f32,
+        }
 
-        let x = window_size_limit.left - 50.0;
-        let y = 10.0;
+        let pos = [
+            Position {x: window_size_limit.left - 50.0, y: -200.0, velocity_x: 0.5},
+            Position {x: window_size_limit.right + 50.0, y: -100.0, velocity_x: -0.5},
+            Position {x: window_size_limit.left - 50.0, y: 0.0, velocity_x: 0.5},
+            Position {x: window_size_limit.right + 50.0, y: 100.0, velocity_x: -0.5},
+            Position {x: window_size_limit.left - 50.0, y: 200.0, velocity_x: 0.5},
+        ];
 
-        // enemy
-        commands.spawn((
-            MaterialMesh2dBundle {
-                mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
-                material: materials.add(ColorMaterial::from(Color::GREEN)),
-                transform: Transform::from_xyz(x, y, 9.0),
-                ..default()
-            },
-            Enemy {
-                shoot_interval: Timer::from_seconds(shot_duration, TimerMode::Repeating),
-            },
-            AutoDespawn,
-            Velocity {x: 0.5, y: 0.0},
-            EnemyMovePattern005 {
-                base_y: y,
-            },
-        ));
+        for p in pos {
+            let x = p.x;
+            let y = p.y;
+            let velocity_x = p.velocity_x;
+
+            let shot_duration = rng.gen_range(1.0..3.0);
+
+            // enemy
+            commands.spawn((
+                MaterialMesh2dBundle {
+                    mesh: meshes.add(shape::Circle::new(ENEMY_RADIUS).into()).into(),
+                    material: materials.add(ColorMaterial::from(Color::GREEN)),
+                    transform: Transform::from_xyz(x, y, 9.0),
+                    ..default()
+                },
+                Enemy {
+                    shoot_interval: Timer::from_seconds(shot_duration, TimerMode::Repeating),
+                },
+                AutoDespawn,
+                Velocity {x: velocity_x, y: 0.0},
+                EnemyMovePattern005 {
+                    base_y: y,
+                },
+            ));
+        }
     }
 }
 
@@ -61,7 +78,7 @@ pub fn enemy_move_pattern_005(
     mut query: Query<(&mut Transform, &mut EnemyMovePattern005), With<EnemyMovePattern005>>,
     time: Res<Time>,
 ) {
-    let sin = time.elapsed_seconds().sin() * 100.0;
+    let sin = time.elapsed_seconds().sin() * 50.0;
 
     for (mut transform, enemy_move) in query.iter_mut() {
         transform.translation.y = enemy_move.base_y + sin.abs();
