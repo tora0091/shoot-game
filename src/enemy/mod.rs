@@ -54,11 +54,13 @@ impl Plugin for EnemyPlugin {
                     enemy_pattern_005: EnemyScheduleValue { seconds: 60, enable: true },
                 }
             )
-            .add_plugins(EnemyPattern001)
-            .add_plugins(EnemyPattern002)
-            .add_plugins(EnemyPattern003)
-            .add_plugins(EnemyPattern004)
-            .add_plugins(EnemyPattern005)
+            .add_plugins((
+                EnemyPattern001,
+                EnemyPattern002,
+                EnemyPattern003,
+                EnemyPattern004,
+                EnemyPattern005,
+            ))
             .add_systems(Update, enemy_shoot_system);
     }
 }

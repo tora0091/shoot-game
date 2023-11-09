@@ -50,7 +50,6 @@ pub fn enemy_spawn_pattern_005(
             let x = p.x;
             let y = p.y;
             let velocity_x = p.velocity_x;
-
             let shot_duration = rng.gen_range(1.0..3.0);
 
             // enemy
