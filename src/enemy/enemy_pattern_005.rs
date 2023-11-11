@@ -9,9 +9,11 @@ pub struct EnemyPattern005;
 
 impl Plugin for EnemyPattern005 {
     fn build(&self, app: &mut App) {
-        app.add_systems(Update, (
-            enemy_spawn_pattern_005,
-            enemy_move_pattern_005,
+        app
+            .add_systems(PostStartup, setup)
+            .add_systems(Update, (
+                enemy_spawn_pattern_005,
+                enemy_move_pattern_005,
         ));
     }
 }
@@ -21,35 +23,50 @@ pub struct EnemyMovePattern005 {
     base_y: f32,
 }
 
+pub struct Position {
+    x: f32,
+    y: f32,
+    velocity_x: f32,
+}
+
+#[derive(Resource)]
+pub struct EnemyPositions {
+    positions: Vec<Position>,
+}
+
+fn setup(
+    mut commands: Commands,
+    window_size_limit: Res<WindowSizeLimit>,
+) {
+    let enemy_positions = vec![
+        Position {x: window_size_limit.left - 50.0, y: -200.0, velocity_x: 0.5,},
+        Position {x: window_size_limit.right + 50.0, y: -100.0, velocity_x: -0.5},
+        Position {x: window_size_limit.left - 50.0, y: 0.0, velocity_x: 0.5},
+        Position {x: window_size_limit.right + 50.0, y: 100.0, velocity_x: -0.5},
+        Position {x: window_size_limit.left - 50.0, y: 200.0, velocity_x: 0.5},
+    ];
+
+    commands.insert_resource(EnemyPositions {
+        positions: enemy_positions,
+    });
+}
+
 pub fn enemy_spawn_pattern_005(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
-    window_size_limit: Res<WindowSizeLimit>,
     mut enemy_schedule: ResMut<EnemySchedule>,
     game_timer: Res<GameTimer>,
+    enemy_positions: Res<EnemyPositions>,
 ) {
     let mut rng = rand::thread_rng();
 
     if EnemySchedule::is_ready(&mut enemy_schedule.enemy_pattern_005, game_timer.seconds) {
-        struct Position {
-            x: f32,
-            y: f32,
-            velocity_x: f32,
-        }
 
-        let pos = [
-            Position {x: window_size_limit.left - 50.0, y: -200.0, velocity_x: 0.5},
-            Position {x: window_size_limit.right + 50.0, y: -100.0, velocity_x: -0.5},
-            Position {x: window_size_limit.left - 50.0, y: 0.0, velocity_x: 0.5},
-            Position {x: window_size_limit.right + 50.0, y: 100.0, velocity_x: -0.5},
-            Position {x: window_size_limit.left - 50.0, y: 200.0, velocity_x: 0.5},
-        ];
-
-        for p in pos {
-            let x = p.x;
-            let y = p.y;
-            let velocity_x = p.velocity_x;
+        for position in enemy_positions.positions.iter() {
+            let x = position.x;
+            let y = position.y;
+            let velocity_x = position.velocity_x;
             let shot_duration = rng.gen_range(1.0..3.0);
 
             // enemy
