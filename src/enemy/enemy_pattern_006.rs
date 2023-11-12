@@ -69,9 +69,9 @@ pub fn enemy_move_pattern_006(
     for (mut velocity, transform) in query.iter_mut() {
         if transform.translation.y <= -100.0 {
             if transform.translation.x >= 0.0 {
-                (velocity.x, velocity.y) = (3.0, 0.0)
+                (velocity.x, velocity.y) = (3.0, 3.0)
             } else {
-                (velocity.x, velocity.y) = (-3.0, 0.0)
+                (velocity.x, velocity.y) = (-3.0, 3.0)
             }
         }
     }

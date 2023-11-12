@@ -55,7 +55,7 @@ impl Plugin for EnemyPlugin {
                     enemy_pattern_003: EnemyScheduleValue { seconds: 30, enable: true },
                     enemy_pattern_004: EnemyScheduleValue { seconds: 45, enable: true },
                     enemy_pattern_005: EnemyScheduleValue { seconds: 60, enable: true },
-                    enemy_pattern_006: EnemyScheduleValue { seconds: 1, enable: true },
+                    enemy_pattern_006: EnemyScheduleValue { seconds: 75, enable: true },
                 }
             )
             .add_plugins((
