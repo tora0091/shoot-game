@@ -12,12 +12,18 @@ impl Plugin for EnemyPattern006 {
         app.add_systems(Update, (
             enemy_spawn_pattern_006,
             enemy_move_pattern_006,
+            enemy_wait_and_go,
         ));
     }
 }
 
 #[derive(Component)]
 pub struct EnemyMovePattern006;
+
+#[derive(Component)]
+pub struct WaitTimer {
+    timer: Timer,
+}
 
 pub fn enemy_spawn_pattern_006(
     mut commands: Commands,
@@ -64,10 +70,26 @@ pub fn enemy_spawn_pattern_006(
 }
 
 pub fn enemy_move_pattern_006(
-    mut query: Query<(&mut Velocity, &Transform), With<EnemyMovePattern006>>,
+    mut commands: Commands,
+    mut query: Query<(&mut Velocity, &Transform, Entity), With<EnemyMovePattern006>>,
 ) {
-    for (mut velocity, transform) in query.iter_mut() {
+    for (mut velocity, transform, entity) in query.iter_mut() {
         if transform.translation.y <= -100.0 {
+            (velocity.x, velocity.y) = (0.0, 0.0);
+
+            commands.entity(entity).insert(WaitTimer{
+                timer: Timer::from_seconds(3.0, TimerMode::Once),
+            });
+        }
+    }
+}
+
+pub fn enemy_wait_and_go(
+    mut query: Query<(&mut Velocity, &Transform, &mut WaitTimer), With<EnemyMovePattern006>>,
+    time: Res<Time>,
+) {
+    for (mut velocity, transform, mut wait_timer) in query.iter_mut() {
+        if wait_timer.timer.tick(time.delta()).finished() {
             if transform.translation.x >= 0.0 {
                 (velocity.x, velocity.y) = (3.0, 3.0)
             } else {
