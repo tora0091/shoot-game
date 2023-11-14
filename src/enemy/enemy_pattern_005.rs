@@ -23,7 +23,7 @@ pub struct EnemyMovePattern005 {
     base_y: f32,
 }
 
-pub struct Position {
+struct Position {
     x: f32,
     y: f32,
     velocity_x: f32,
@@ -51,7 +51,7 @@ fn setup(
     });
 }
 
-pub fn enemy_spawn_pattern_005(
+fn enemy_spawn_pattern_005(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -90,7 +90,7 @@ pub fn enemy_spawn_pattern_005(
     }
 }
 
-pub fn enemy_move_pattern_005(
+fn enemy_move_pattern_005(
     mut query: Query<(&mut Transform, &mut EnemyMovePattern005), With<EnemyMovePattern005>>,
     time: Res<Time>,
 ) {

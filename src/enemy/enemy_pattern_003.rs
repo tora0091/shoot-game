@@ -19,7 +19,7 @@ impl Plugin for EnemyPattern003 {
 #[derive(Component)]
 pub struct EnemyMovePattern003;
 
-pub fn enemy_spawn_pattern_003(
+fn enemy_spawn_pattern_003(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -63,7 +63,7 @@ pub fn enemy_spawn_pattern_003(
     }
 }
 
-pub fn enemy_move_pattern_003(
+fn enemy_move_pattern_003(
     mut query: Query<(&mut Velocity, &mut Transform), With<EnemyMovePattern003>>,
 ) {
     // y = 0.1x^2 + 10x -200

@@ -23,7 +23,7 @@ pub struct EnemyMovePattern004 {
     base_y: f32,
 }
 
-pub fn enemy_spawn_pattern_004(
+fn enemy_spawn_pattern_004(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -59,7 +59,7 @@ pub fn enemy_spawn_pattern_004(
     }
 }
 
-pub fn enemy_move_pattern_004(
+fn enemy_move_pattern_004(
     mut query: Query<(&Velocity, &mut Transform, &mut EnemyMovePattern004), With<EnemyMovePattern004>>,
     time: Res<Time>,
 ) {

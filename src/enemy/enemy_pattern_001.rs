@@ -18,7 +18,7 @@ impl Plugin for EnemyPattern001 {
 #[derive(Component)]
 pub struct EnemyMovePattern001;
 
-pub fn enemy_spawn_pattern_001(
+fn enemy_spawn_pattern_001(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
