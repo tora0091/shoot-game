@@ -25,7 +25,7 @@ pub struct WaitTimer {
     timer: Timer,
 }
 
-pub fn enemy_spawn_pattern_006(
+fn enemy_spawn_pattern_006(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -69,22 +69,23 @@ pub fn enemy_spawn_pattern_006(
     }
 }
 
-pub fn enemy_move_pattern_006(
+fn enemy_move_pattern_006(
     mut commands: Commands,
-    mut query: Query<(&mut Velocity, &Transform, Entity), With<EnemyMovePattern006>>,
+    mut query: Query<(&mut Velocity, &mut Transform, Entity), With<EnemyMovePattern006>>,
 ) {
-    for (mut velocity, transform, entity) in query.iter_mut() {
-        if transform.translation.y <= -100.0 {
+    for (mut velocity, mut transform, entity) in query.iter_mut() {
+        if transform.translation.y == -100.0 {
             (velocity.x, velocity.y) = (0.0, 0.0);
 
             commands.entity(entity).insert(WaitTimer{
                 timer: Timer::from_seconds(3.0, TimerMode::Once),
             });
+            transform.translation.y = -100.1;
         }
     }
 }
 
-pub fn enemy_wait_and_go(
+fn enemy_wait_and_go(
     mut query: Query<(&mut Velocity, &Transform, &mut WaitTimer), With<EnemyMovePattern006>>,
     time: Res<Time>,
 ) {
