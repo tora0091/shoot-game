@@ -18,7 +18,6 @@ fn player_shoot_collision_system(
     mut commands: Commands,
     player_shoots: Query<(Entity, &Transform), With<FromPlayerShoot>>,
     enemies: Query<(Entity, &Transform), With<Enemy>>,
-    // mut enemy_spawn: ResMut<EnemySpawn>,
 ) {
     for (enemy_entity, enemy_transform) in enemies.iter() {
         for (player_shoot_entity, player_shoot_transform) in player_shoots.iter() {
@@ -32,8 +31,6 @@ fn player_shoot_collision_system(
             if is_collide != None {
                 commands.entity(enemy_entity).despawn();
                 commands.entity(player_shoot_entity).despawn();
-
-                // enemy_spawn.counter -= 1;
 
                 let x = enemy_transform.translation.x;
                 let y = enemy_transform.translation.y;
@@ -81,7 +78,6 @@ fn player_enemy_collision_system(
     player: Query<(Entity, &Transform), With<Player>>,
     enemy: Query<(Entity, &Transform), With<Enemy>>,
     mut player_spawn: ResMut<PlayerSpawn>,
-    // mut enemy_spawn: ResMut<EnemySpawn>,
 ) {
     if let Ok((player_entity, player_transform)) = player.get_single() {
         for (enemy_entity, enemy_transform) in enemy.iter() {
@@ -101,7 +97,6 @@ fn player_enemy_collision_system(
                 });
 
                 commands.entity(enemy_entity).despawn();
-                // enemy_spawn.counter -= 1;
                 commands.spawn(ShowBangPoint {
                     x: enemy_transform.translation.x,
                     y: enemy_transform.translation.y,
