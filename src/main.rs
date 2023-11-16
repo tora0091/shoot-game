@@ -31,7 +31,7 @@ fn main() {
         .add_systems(Startup, setup_system)
         .add_systems(Update, (
             game_timer_system,
-            show_point,
+            // show_point,
             bevy::window::close_on_esc
         ))
         .run();

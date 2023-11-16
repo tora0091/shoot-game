@@ -26,7 +26,7 @@ fn player_status_system(
         // set player init position
         let player = Player {
             x: 0.0,
-            y: window_size_limit.bottom + PLAYER_RADIUS,
+            y: window_size_limit.bottom + PLAYER_RADIUS + 50.0,
             z: 10.0,
         };
 
