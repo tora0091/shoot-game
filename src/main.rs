@@ -22,13 +22,16 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugins(PlayerPlugin)
-        .add_plugins(EnemyPlugin)
-        .add_plugins(CollisionPlugin)
-        .add_plugins(CommonPlugin)
+        .add_plugins((
+            PlayerPlugin,
+            EnemyPlugin,
+            CollisionPlugin,
+            CommonPlugin,
+        ))
         .add_systems(Startup, setup_system)
         .add_systems(Update, (
             game_timer_system,
+            show_point,
             bevy::window::close_on_esc
         ))
         .run();
@@ -58,9 +61,10 @@ fn setup_system(
     commands.insert_resource(SpeedControl { value: 1.0 });
 
     // player spawn
-    commands.insert_resource(PlayerSpawn {
+    commands.insert_resource(PlayerStatus {
         is_spawn: true,
         timer: Timer::from_seconds(1.0, TimerMode::Once),
+        score: 0.0,
     });
 
     // set game timer
@@ -77,4 +81,10 @@ fn game_timer_system(
     if game_timer.timer.tick(time.delta()).just_finished() {
         game_timer.seconds += 1;
     }
+}
+
+fn show_point(
+    player_status: Res<PlayerStatus>,
+) {
+    println!("{}", player_status.score)
 }

@@ -79,6 +79,7 @@ fn enemy_spawn_pattern_005(
                 },
                 Enemy {
                     shoot_interval: Timer::from_seconds(shot_duration, TimerMode::Repeating),
+                    point: 1.0,
                 },
                 AutoDespawn,
                 Velocity {x: velocity_x, y: 0.0},

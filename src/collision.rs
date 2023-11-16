@@ -17,9 +17,10 @@ impl Plugin for CollisionPlugin {
 fn player_shoot_collision_system(
     mut commands: Commands,
     player_shoots: Query<(Entity, &Transform), With<FromPlayerShoot>>,
-    enemies: Query<(Entity, &Transform), With<Enemy>>,
+    enemies: Query<(Entity, &Transform, &Enemy), With<Enemy>>,
+    mut player_status: ResMut<PlayerStatus>,
 ) {
-    for (enemy_entity, enemy_transform) in enemies.iter() {
+    for (enemy_entity, enemy_transform, enemy) in enemies.iter() {
         for (player_shoot_entity, player_shoot_transform) in player_shoots.iter() {
             let is_collide = collide(
                 enemy_transform.translation,
@@ -35,6 +36,8 @@ fn player_shoot_collision_system(
                 let x = enemy_transform.translation.x;
                 let y = enemy_transform.translation.y;
 
+                player_status.score += enemy.point;
+
                 commands.spawn(ShowBangPoint {x, y});
             }
         }
@@ -45,7 +48,7 @@ fn enemy_shoot_collision_system(
     mut commands: Commands,
     enemy_shoots: Query<(Entity, &Transform), With<FromEnemyShoot>>,
     player: Query<(Entity, &Transform), With<Player>>,
-    mut player_spawn: ResMut<PlayerSpawn>,
+    mut player_status: ResMut<PlayerStatus>,
 ) {
     if let Ok((player_entity, player_transform)) = player.get_single() {
         for (enemy_shoot_entity, enemy_shoot_transform) in enemy_shoots.iter() {
@@ -58,8 +61,8 @@ fn enemy_shoot_collision_system(
             if is_collide != None {
                 commands.entity(player_entity).despawn();
 
-                player_spawn.is_spawn = true;
-                player_spawn.timer = Timer::from_seconds(3.0, TimerMode::Once);
+                player_status.is_spawn = true;
+                player_status.timer = Timer::from_seconds(3.0, TimerMode::Once);
 
                 // player bang
                 commands.spawn(ShowBangPoint {
@@ -77,7 +80,7 @@ fn player_enemy_collision_system(
     mut commands: Commands,
     player: Query<(Entity, &Transform), With<Player>>,
     enemy: Query<(Entity, &Transform), With<Enemy>>,
-    mut player_spawn: ResMut<PlayerSpawn>,
+    mut player_status: ResMut<PlayerStatus>,
 ) {
     if let Ok((player_entity, player_transform)) = player.get_single() {
         for (enemy_entity, enemy_transform) in enemy.iter() {
@@ -89,8 +92,8 @@ fn player_enemy_collision_system(
 
             if is_collide != None {
                 commands.entity(player_entity).despawn();
-                player_spawn.is_spawn = true;
-                player_spawn.timer = Timer::from_seconds(3.0, TimerMode::Once);
+                player_status.is_spawn = true;
+                player_status.timer = Timer::from_seconds(3.0, TimerMode::Once);
                 commands.spawn(ShowBangPoint {
                     x: player_transform.translation.x,
                     y: player_transform.translation.y,

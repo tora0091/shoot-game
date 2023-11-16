@@ -1,28 +1,28 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
-use crate::{WindowSizeLimit, PlayerSpawn, SpeedControl, SHOOT_RADIUS, Velocity, SHOOT_VELOCITY, AutoDespawn, PLAYER_RADIUS, PLAYER_VELOCITY, FromPlayerShoot, Player};
+use crate::{WindowSizeLimit, PlayerStatus, SpeedControl, SHOOT_RADIUS, Velocity, SHOOT_VELOCITY, AutoDespawn, PLAYER_RADIUS, PLAYER_VELOCITY, FromPlayerShoot, Player};
 
 pub struct PlayerPlugin;
 
 impl Plugin for PlayerPlugin {
     fn build(&self, app: &mut App) {
         app.add_systems(Update, (
-            player_spawn_system,
+            player_status_system,
             player_move_system,
             player_shoot_system,
         ));
     }
 }
 
-fn player_spawn_system(
+fn player_status_system(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     window_size_limit: Res<WindowSizeLimit>,
-    mut player_spawn: ResMut<PlayerSpawn>,
+    mut player_status: ResMut<PlayerStatus>,
     time: Res<Time>,
 ) {
-    if player_spawn.is_spawn == true && player_spawn.timer.tick(time.delta()).just_finished() {
+    if player_status.is_spawn == true && player_status.timer.tick(time.delta()).just_finished() {
         // set player init position
         let player = Player {
             x: 0.0,
@@ -44,7 +44,7 @@ fn player_spawn_system(
             player,
         ));
 
-        player_spawn.is_spawn = false;
+        player_status.is_spawn = false;
     }
 }
 

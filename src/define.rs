@@ -30,9 +30,10 @@ impl WindowSizeLimit {
 }
 
 #[derive(Resource)]
-pub struct PlayerSpawn {
+pub struct PlayerStatus {
     pub is_spawn: bool,
     pub timer: Timer,
+    pub score: f32,
 }
 
 #[derive(Resource)]
@@ -79,6 +80,7 @@ impl Player {
 #[derive(Component)]
 pub struct Enemy {
     pub shoot_interval: Timer,
+    pub point: f32,
 }
 
 #[derive(Component)]
