@@ -1,6 +1,6 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
-use crate::{WindowSizeLimit, PlayerStatus, SpeedControl, SHOOT_RADIUS, Velocity, SHOOT_VELOCITY, AutoDespawn, PLAYER_RADIUS, PLAYER_VELOCITY, FromPlayerShoot, Player, define::PlayerStartPosition};
+use crate::{WindowSizeLimit, PlayerStatus, SpeedControl, SHOOT_RADIUS, Velocity, SHOOT_VELOCITY, AutoDespawn, PLAYER_RADIUS, PLAYER_VELOCITY, FromPlayerShoot, Player, define::{PlayerStartPosition, ShootType}};
 
 pub struct PlayerPlugin;
 
@@ -11,6 +11,7 @@ impl Plugin for PlayerPlugin {
             player_move_system,
             player_shoot_system,
             player_start_position,
+            player_shoot_type,
         ));
     }
 }
@@ -30,6 +31,7 @@ fn player_status_system(
             y: window_size_limit.bottom + PLAYER_RADIUS,
             z: 10.0,
             is_enable: false,
+            shoot_type: ShootType::Normal,
         };
 
         // player
@@ -92,17 +94,85 @@ fn player_shoot_system(
     if input.just_pressed(KeyCode::Space) {
         if let Ok(player_position) = query.get_single() {
             // player shoot
-            commands.spawn(
-                (MaterialMesh2dBundle {
-                    mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
-                    material: materials.add(ColorMaterial::from(Color::RED)),
-                    transform: Transform::from_translation(player_position.set_z_position(0.0)),
-                    ..default()
-                },
-                Velocity { x: 0.0, y: SHOOT_VELOCITY * speed_control.value },
-                AutoDespawn,
-                FromPlayerShoot,
-            ));
+            match player_position.shoot_type {
+                ShootType::Normal => {
+                    commands.spawn(
+                        (MaterialMesh2dBundle {
+                            mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
+                            material: materials.add(ColorMaterial::from(Color::RED)),
+                            transform: Transform::from_translation(player_position.set_z_position(0.0)),
+                            ..default()
+                        },
+                        Velocity { x: 0.0, y: SHOOT_VELOCITY * speed_control.value },
+                        AutoDespawn,
+                        FromPlayerShoot,
+                    ));
+                }
+                ShootType::Double => {
+                    let velocity = SHOOT_VELOCITY * speed_control.value;
+                    commands.spawn(
+                        (MaterialMesh2dBundle {
+                            mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
+                            material: materials.add(ColorMaterial::from(Color::RED)),
+                            transform: Transform::from_xyz(player_position.x - PLAYER_RADIUS, player_position.y, 0.0),
+                            ..default()
+                        },
+                        Velocity { x: -velocity / 2.0, y: velocity },
+                        AutoDespawn,
+                        FromPlayerShoot,
+                    ));
+
+                    commands.spawn(
+                        (MaterialMesh2dBundle {
+                            mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
+                            material: materials.add(ColorMaterial::from(Color::RED)),
+                            transform: Transform::from_xyz(player_position.x + PLAYER_RADIUS, player_position.y, 0.0),
+                            ..default()
+                        },
+                        Velocity { x: velocity / 2.0, y: velocity },
+                        AutoDespawn,
+                        FromPlayerShoot,
+                    ));
+                }
+                ShootType::Triple => {
+                    commands.spawn(
+                        (MaterialMesh2dBundle {
+                            mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
+                            material: materials.add(ColorMaterial::from(Color::RED)),
+                            transform: Transform::from_translation(player_position.set_z_position(0.0)),
+                            ..default()
+                        },
+                        Velocity { x: 0.0, y: SHOOT_VELOCITY * speed_control.value },
+                        AutoDespawn,
+                        FromPlayerShoot,
+                    ));
+
+                    let velocity = SHOOT_VELOCITY * speed_control.value;
+                    commands.spawn(
+                        (MaterialMesh2dBundle {
+                            mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
+                            material: materials.add(ColorMaterial::from(Color::RED)),
+                            transform: Transform::from_xyz(player_position.x - PLAYER_RADIUS, player_position.y, 0.0),
+                            ..default()
+                        },
+                        Velocity { x: -velocity / 2.0, y: velocity },
+                        AutoDespawn,
+                        FromPlayerShoot,
+                    ));
+
+                    commands.spawn(
+                        (MaterialMesh2dBundle {
+                            mesh: meshes.add(shape::Circle::new(SHOOT_RADIUS).into()).into(),
+                            material: materials.add(ColorMaterial::from(Color::RED)),
+                            transform: Transform::from_xyz(player_position.x + PLAYER_RADIUS, player_position.y, 0.0),
+                            ..default()
+                        },
+                        Velocity { x: velocity / 2.0, y: velocity },
+                        AutoDespawn,
+                        FromPlayerShoot,
+                    ));
+                }
+            }
         }
     }
 }
@@ -120,6 +190,26 @@ fn player_start_position(
             player.is_enable = true;
         } else {
             player.y += 5.0;
+        }
+    }
+}
+
+fn player_shoot_type(
+    mut query: Query<&mut Player>,
+    input: Res<Input<KeyCode>>,
+) {
+
+    if let Ok(mut player) = query.get_single_mut() {
+        if input.just_pressed(KeyCode::N) {
+            player.shoot_type = ShootType::Normal;
+        }
+
+        if input.just_pressed(KeyCode::D) {
+            player.shoot_type = ShootType::Double;
+        }
+
+        if input.just_pressed(KeyCode::T) {
+            player.shoot_type = ShootType::Triple;
         }
     }
 }

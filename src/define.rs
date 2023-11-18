@@ -61,12 +61,20 @@ pub struct Velocity {
     pub y: f32,
 }
 
+pub enum ShootType {
+    Normal,
+    Double,
+    Triple,
+}
+
+
 #[derive(Component)]
 pub struct Player {
     pub x: f32,
     pub y: f32,
     pub z: f32,
     pub is_enable: bool,
+    pub shoot_type: ShootType,
 }
 
 impl Player {
