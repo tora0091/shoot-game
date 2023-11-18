@@ -1,6 +1,6 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
 
-use crate::{WindowSizeLimit, PlayerStatus, SpeedControl, SHOOT_RADIUS, Velocity, SHOOT_VELOCITY, AutoDespawn, PLAYER_RADIUS, PLAYER_VELOCITY, FromPlayerShoot, Player};
+use crate::{WindowSizeLimit, PlayerStatus, SpeedControl, SHOOT_RADIUS, Velocity, SHOOT_VELOCITY, AutoDespawn, PLAYER_RADIUS, PLAYER_VELOCITY, FromPlayerShoot, Player, define::PlayerStartPosition};
 
 pub struct PlayerPlugin;
 
@@ -10,6 +10,7 @@ impl Plugin for PlayerPlugin {
             player_status_system,
             player_move_system,
             player_shoot_system,
+            player_start_position,
         ));
     }
 }
@@ -26,8 +27,9 @@ fn player_status_system(
         // set player init position
         let player = Player {
             x: 0.0,
-            y: window_size_limit.bottom + PLAYER_RADIUS + 50.0,
+            y: window_size_limit.bottom + PLAYER_RADIUS,
             z: 10.0,
+            is_enable: false,
         };
 
         // player
@@ -42,6 +44,7 @@ fn player_status_system(
                 ..default()
             },
             player,
+            PlayerStartPosition,
         ));
 
         player_status.is_spawn = false;
@@ -54,25 +57,27 @@ fn player_move_system(
     speed_control: Res<SpeedControl>,
 ) {
     if let Ok((mut player_transform, mut player_position)) = query.get_single_mut() {
-        let speed = PLAYER_VELOCITY * speed_control.value;
+        if player_position.is_enable {
+            let speed = PLAYER_VELOCITY * speed_control.value;
 
-        if input.pressed(KeyCode::Up) {
-            player_position.y += speed;
+            if input.pressed(KeyCode::Up) {
+                player_position.y += speed;
+            }
+
+            if input.pressed(KeyCode::Down) {
+                player_position.y -= speed;
+            }
+
+            if input.pressed(KeyCode::Right) {
+                player_position.x += speed;
+            }
+
+            if input.pressed(KeyCode::Left) {
+                player_position.x -= speed;
+            }
+
+            player_transform.translation = player_position.get_position();
         }
-
-        if input.pressed(KeyCode::Down) {
-            player_position.y -= speed;
-        }
-
-        if input.pressed(KeyCode::Right) {
-            player_position.x += speed;
-        }
-
-        if input.pressed(KeyCode::Left) {
-            player_position.x -= speed;
-        }
-
-        player_transform.translation = player_position.get_position();
     }
 }
 
@@ -98,6 +103,23 @@ fn player_shoot_system(
                 AutoDespawn,
                 FromPlayerShoot,
             ));
+        }
+    }
+}
+
+fn player_start_position(
+    mut commands: Commands,
+    window_size_limit: Res<WindowSizeLimit>,
+    mut query: Query<(&mut Transform, &mut Player, Entity), With<PlayerStartPosition>>,
+) {
+    let start_position = window_size_limit.bottom + (PLAYER_RADIUS * 12.0);
+
+    if let Ok((_transform, mut player, entity)) = query.get_single_mut() {
+        if player.y >= start_position {
+            commands.entity(entity).remove::<PlayerStartPosition>();
+            player.is_enable = true;
+        } else {
+            player.y += 5.0;
         }
     }
 }

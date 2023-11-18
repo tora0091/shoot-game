@@ -66,6 +66,7 @@ pub struct Player {
     pub x: f32,
     pub y: f32,
     pub z: f32,
+    pub is_enable: bool,
 }
 
 impl Player {
@@ -76,6 +77,9 @@ impl Player {
         Vec3 { x: self.x, y: self.y, z }
     }
 }
+
+#[derive(Component)]
+pub struct PlayerStartPosition;
 
 #[derive(Component)]
 pub struct Enemy {

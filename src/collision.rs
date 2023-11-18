@@ -47,30 +47,32 @@ fn player_shoot_collision_system(
 fn enemy_shoot_collision_system(
     mut commands: Commands,
     enemy_shoots: Query<(Entity, &Transform), With<FromEnemyShoot>>,
-    player: Query<(Entity, &Transform), With<Player>>,
+    player: Query<(Entity, &Transform, &Player), With<Player>>,
     mut player_status: ResMut<PlayerStatus>,
 ) {
-    if let Ok((player_entity, player_transform)) = player.get_single() {
+    if let Ok((player_entity, player_transform, player)) = player.get_single() {
         for (enemy_shoot_entity, enemy_shoot_transform) in enemy_shoots.iter() {
-            let is_collide = collide(
-                player_transform.translation,
-                Vec2::new(PLAYER_RADIUS, PLAYER_RADIUS),
-                enemy_shoot_transform.translation,
-                Vec2::new(SHOOT_RADIUS, SHOOT_RADIUS));
+            if player.is_enable {
+                let is_collide = collide(
+                    player_transform.translation,
+                    Vec2::new(PLAYER_RADIUS, PLAYER_RADIUS),
+                    enemy_shoot_transform.translation,
+                    Vec2::new(SHOOT_RADIUS, SHOOT_RADIUS));
 
-            if is_collide != None {
-                commands.entity(player_entity).despawn();
+                if is_collide != None {
+                    commands.entity(player_entity).despawn();
 
-                player_status.is_spawn = true;
-                player_status.timer = Timer::from_seconds(3.0, TimerMode::Once);
+                    player_status.is_spawn = true;
+                    player_status.timer = Timer::from_seconds(3.0, TimerMode::Once);
 
-                // player bang
-                commands.spawn(ShowBangPoint {
-                    x: player_transform.translation.x,
-                    y: player_transform.translation.y,
-                });
+                    // player bang
+                    commands.spawn(ShowBangPoint {
+                        x: player_transform.translation.x,
+                        y: player_transform.translation.y,
+                    });
 
-                commands.entity(enemy_shoot_entity).despawn();
+                    commands.entity(enemy_shoot_entity).despawn();
+                }
             }
         }
     }
@@ -78,32 +80,34 @@ fn enemy_shoot_collision_system(
 
 fn player_enemy_collision_system(
     mut commands: Commands,
-    player: Query<(Entity, &Transform), With<Player>>,
+    player: Query<(Entity, &Transform, &Player), With<Player>>,
     enemy: Query<(Entity, &Transform), With<Enemy>>,
     mut player_status: ResMut<PlayerStatus>,
 ) {
-    if let Ok((player_entity, player_transform)) = player.get_single() {
+    if let Ok((player_entity, player_transform, player)) = player.get_single() {
         for (enemy_entity, enemy_transform) in enemy.iter() {
-            let is_collide = collide(
-                player_transform.translation,
-                Vec2::new(PLAYER_RADIUS, PLAYER_RADIUS),
-                enemy_transform.translation,
-                Vec2::new(ENEMY_RADIUS, ENEMY_RADIUS));
+            if player.is_enable {
+                let is_collide = collide(
+                    player_transform.translation,
+                    Vec2::new(PLAYER_RADIUS, PLAYER_RADIUS),
+                    enemy_transform.translation,
+                    Vec2::new(ENEMY_RADIUS, ENEMY_RADIUS));
 
-            if is_collide != None {
-                commands.entity(player_entity).despawn();
-                player_status.is_spawn = true;
-                player_status.timer = Timer::from_seconds(3.0, TimerMode::Once);
-                commands.spawn(ShowBangPoint {
-                    x: player_transform.translation.x,
-                    y: player_transform.translation.y,
-                });
+                if is_collide != None {
+                    commands.entity(player_entity).despawn();
+                    player_status.is_spawn = true;
+                    player_status.timer = Timer::from_seconds(3.0, TimerMode::Once);
+                    commands.spawn(ShowBangPoint {
+                        x: player_transform.translation.x,
+                        y: player_transform.translation.y,
+                    });
 
-                commands.entity(enemy_entity).despawn();
-                commands.spawn(ShowBangPoint {
-                    x: enemy_transform.translation.x,
-                    y: enemy_transform.translation.y,
-                });
+                    commands.entity(enemy_entity).despawn();
+                    commands.spawn(ShowBangPoint {
+                        x: enemy_transform.translation.x,
+                        y: enemy_transform.translation.y,
+                    });
+                }
             }
         }
     }
