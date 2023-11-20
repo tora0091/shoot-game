@@ -31,7 +31,7 @@ fn main() {
         .add_systems(Startup, setup_system)
         .add_systems(Update, (
             game_timer_system,
-            // show_point,
+            update_score_board,
             bevy::window::close_on_esc
         ))
         .run();
@@ -72,6 +72,30 @@ fn setup_system(
         timer: Timer::from_seconds(1.0, TimerMode::Repeating),
         seconds: 0,
     });
+
+    commands.spawn(NodeBundle {
+        style: Style {
+            display: Display::Flex,
+            justify_content: JustifyContent::SpaceBetween,
+            width: Val::Percent(100.),
+            position_type: PositionType::Absolute,
+            top: Val::Px(0.),
+            padding: UiRect::all(Val::Px(10.0)),
+            ..default()
+        },
+        ..default()
+    }).with_children(|p| {
+        p.spawn((
+            TextBundle::from_section(
+                "score:0000",
+                TextStyle {
+                    font_size: 20.0,
+                    ..default()
+                },
+            ),
+            ScoreBoard,
+        ));
+    });
 }
 
 fn game_timer_system(
@@ -83,8 +107,11 @@ fn game_timer_system(
     }
 }
 
-fn show_point(
+fn update_score_board(
     player_status: Res<PlayerStatus>,
+    mut query: Query<&mut Text, With<ScoreBoard>>,
 ) {
-    println!("{}", player_status.score)
+    for mut text in query.iter_mut() {
+        text.sections[0].value = format!("score: {:04}", player_status.score as u32);
+    }
 }
