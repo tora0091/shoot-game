@@ -67,7 +67,7 @@ fn setup_system(
     // player spawn
     commands.insert_resource(PlayerStatus {
         is_spawn: true,
-        timer: Timer::from_seconds(1.0, TimerMode::Once),
+        spawn_timer: Timer::from_seconds(1.0, TimerMode::Once),
         score: 0.0,
     });
 

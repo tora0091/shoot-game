@@ -32,7 +32,7 @@ impl WindowSizeLimit {
 #[derive(Resource)]
 pub struct PlayerStatus {
     pub is_spawn: bool,
-    pub timer: Timer,
+    pub spawn_timer: Timer,
     pub score: f32,
 }
 

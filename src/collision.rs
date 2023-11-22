@@ -63,7 +63,7 @@ fn enemy_shoot_collision_system(
                     commands.entity(player_entity).despawn();
 
                     player_status.is_spawn = true;
-                    player_status.timer = Timer::from_seconds(3.0, TimerMode::Once);
+                    player_status.spawn_timer = Timer::from_seconds(3.0, TimerMode::Once);
 
                     // player bang
                     commands.spawn(ShowBangPoint {
@@ -96,7 +96,7 @@ fn player_enemy_collision_system(
                 if is_collide != None {
                     commands.entity(player_entity).despawn();
                     player_status.is_spawn = true;
-                    player_status.timer = Timer::from_seconds(3.0, TimerMode::Once);
+                    player_status.spawn_timer = Timer::from_seconds(3.0, TimerMode::Once);
                     commands.spawn(ShowBangPoint {
                         x: player_transform.translation.x,
                         y: player_transform.translation.y,
