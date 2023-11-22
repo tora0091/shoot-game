@@ -90,8 +90,6 @@ fn player_shoot_system(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     speed_control: Res<SpeedControl>,
-    mut player_status: ResMut<PlayerStatus>,
-    time: Res<Time<Virtual>>,
 ) {
     if input.just_pressed(KeyCode::Space) {
         if let Ok(player_position) = query.get_single() {
