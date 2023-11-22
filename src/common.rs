@@ -83,7 +83,7 @@ fn auto_despawn_system(
 fn shoot_bang_system(
     mut commands: Commands,
     mut query: Query<(Entity, &mut ShootBang)>,
-    time: Res<Time>,
+    time: Res<Time<Virtual>>,
 ) {
     for (entity, mut shoot_bang) in query.iter_mut() {
         if shoot_bang.timer.tick(time.delta()).just_finished() {

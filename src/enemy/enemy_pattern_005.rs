@@ -93,7 +93,7 @@ fn enemy_spawn_pattern_005(
 
 fn enemy_move_pattern_005(
     mut query: Query<(&mut Transform, &mut EnemyMovePattern005), With<EnemyMovePattern005>>,
-    time: Res<Time>,
+    time: Res<Time<Virtual>>,
 ) {
     let sin = time.elapsed_seconds().sin() * 50.0;
 

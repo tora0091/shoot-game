@@ -75,7 +75,7 @@ fn enemy_shoot_system(
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
     mut query: Query<(&Transform, &mut Enemy)>,
-    time: Res<Time>,
+    time: Res<Time<Virtual>>,
     speed_control: Res<SpeedControl>,
 ) {
     for (enemy_transform, mut enemy) in query.iter_mut() {

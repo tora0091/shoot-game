@@ -32,6 +32,7 @@ fn main() {
         .add_systems(Update, (
             game_timer_system,
             update_score_board,
+            toggle_pause,
             bevy::window::close_on_esc
         ))
         .run();
@@ -40,7 +41,10 @@ fn main() {
 fn setup_system(
     mut commands: Commands,
     query: Query<&Window>,
+    mut time: ResMut<Time<Virtual>>,
 ) {
+    time.set_relative_speed(1.5);
+
     // camera
     commands.spawn(Camera2dBundle::default());
 
@@ -100,7 +104,7 @@ fn setup_system(
 
 fn game_timer_system(
     mut game_timer: ResMut<GameTimer>,
-    time: Res<Time>,
+    time: Res<Time<Virtual>>,
 ) {
     if game_timer.timer.tick(time.delta()).just_finished() {
         game_timer.seconds += 1;
@@ -113,5 +117,18 @@ fn update_score_board(
 ) {
     for mut text in query.iter_mut() {
         text.sections[0].value = format!("score: {:04}", player_status.score as u32);
+    }
+}
+
+fn toggle_pause(
+    mut time: ResMut<Time<Virtual>>,
+    input: Res<Input<KeyCode>>,
+) {
+    if input.just_pressed(KeyCode::P) {
+        if time.is_paused() {
+            time.unpause();
+        } else {
+            time.pause();
+        }
     }
 }

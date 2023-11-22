@@ -62,7 +62,7 @@ fn enemy_spawn_pattern_004(
 
 fn enemy_move_pattern_004(
     mut query: Query<(&Velocity, &mut Transform, &mut EnemyMovePattern004), With<EnemyMovePattern004>>,
-    time: Res<Time>,
+    time: Res<Time<Virtual>>,
 ) {
     let theta = (time.elapsed_seconds() * 100.0) % 360.0;
 

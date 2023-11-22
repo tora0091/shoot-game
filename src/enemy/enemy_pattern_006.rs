@@ -88,7 +88,7 @@ fn enemy_move_pattern_006(
 
 fn enemy_wait_and_go(
     mut query: Query<(&mut Velocity, &Transform, &mut WaitTimer), With<EnemyMovePattern006>>,
-    time: Res<Time>,
+    time: Res<Time<Virtual>>,
 ) {
     for (mut velocity, transform, mut wait_timer) in query.iter_mut() {
         if wait_timer.timer.tick(time.delta()).finished() {

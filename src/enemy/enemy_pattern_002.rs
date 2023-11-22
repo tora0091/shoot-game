@@ -55,7 +55,7 @@ fn enemy_spawn_pattern_002(
 
 fn enemy_move_pattern_002(
     mut query: Query<(&mut Velocity, &Transform), With<EnemyMovePattern002>>,
-    time: Res<Time>,
+    time: Res<Time<Virtual>>,
 ) {
     let sin = time.elapsed_seconds().sin();
 

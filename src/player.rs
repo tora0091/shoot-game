@@ -22,7 +22,7 @@ fn player_status_system(
     mut meshes: ResMut<Assets<Mesh>>,
     window_size_limit: Res<WindowSizeLimit>,
     mut player_status: ResMut<PlayerStatus>,
-    time: Res<Time>,
+    time: Res<Time<Virtual>>,
 ) {
     if player_status.is_spawn == true && player_status.timer.tick(time.delta()).just_finished() {
         // set player init position
