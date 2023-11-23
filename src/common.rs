@@ -51,15 +51,18 @@ fn player_in_window_system(
 
 fn auto_move_system(
     mut query: Query<(&mut Transform, &mut Velocity)>,
+    time: Res<Time<Virtual>>,
 ) {
-    for (mut transform, velocity) in query.iter_mut() {
-        let x = transform.translation.x;
-        let y = transform.translation.y;
+    if !time.is_paused() {
+        for (mut transform, velocity) in query.iter_mut() {
+            let x = transform.translation.x;
+            let y = transform.translation.y;
 
-        let x = x + velocity.x;
-        let y = y + velocity.y;
+            let x = x + velocity.x;
+            let y = y + velocity.y;
 
-        transform.translation = Vec3::new(x, y, transform.translation.z);
+            transform.translation = Vec3::new(x, y, transform.translation.z);
+        }
     }
 }
 
