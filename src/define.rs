@@ -30,9 +30,10 @@ impl WindowSizeLimit {
 }
 
 #[derive(Resource)]
-pub struct PlayerSpawn {
+pub struct PlayerStatus {
     pub is_spawn: bool,
-    pub timer: Timer,
+    pub spawn_timer: Timer,
+    pub score: f32,
 }
 
 #[derive(Resource)]
@@ -60,11 +61,20 @@ pub struct Velocity {
     pub y: f32,
 }
 
+pub enum ShootType {
+    Normal,
+    Double,
+    Triple,
+}
+
+
 #[derive(Component)]
 pub struct Player {
     pub x: f32,
     pub y: f32,
     pub z: f32,
+    pub is_enable: bool,
+    pub shoot_type: ShootType,
 }
 
 impl Player {
@@ -77,8 +87,12 @@ impl Player {
 }
 
 #[derive(Component)]
+pub struct PlayerStartPosition;
+
+#[derive(Component)]
 pub struct Enemy {
     pub shoot_interval: Timer,
+    pub point: f32,
 }
 
 #[derive(Component)]
@@ -100,3 +114,6 @@ pub struct ShowBangPoint {
     pub x: f32,
     pub y: f32,
 }
+
+#[derive(Component)]
+pub struct ScoreBoard;

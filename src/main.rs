@@ -22,13 +22,17 @@ fn main() {
             }),
             ..default()
         }))
-        .add_plugins(PlayerPlugin)
-        .add_plugins(EnemyPlugin)
-        .add_plugins(CollisionPlugin)
-        .add_plugins(CommonPlugin)
+        .add_plugins((
+            PlayerPlugin,
+            EnemyPlugin,
+            CollisionPlugin,
+            CommonPlugin,
+        ))
         .add_systems(Startup, setup_system)
         .add_systems(Update, (
             game_timer_system,
+            update_score_board,
+            toggle_pause,
             bevy::window::close_on_esc
         ))
         .run();
@@ -37,7 +41,10 @@ fn main() {
 fn setup_system(
     mut commands: Commands,
     query: Query<&Window>,
+    mut time: ResMut<Time<Virtual>>,
 ) {
+    time.set_relative_speed(1.5);
+
     // camera
     commands.spawn(Camera2dBundle::default());
 
@@ -58,9 +65,10 @@ fn setup_system(
     commands.insert_resource(SpeedControl { value: 1.0 });
 
     // player spawn
-    commands.insert_resource(PlayerSpawn {
+    commands.insert_resource(PlayerStatus {
         is_spawn: true,
-        timer: Timer::from_seconds(1.0, TimerMode::Once),
+        spawn_timer: Timer::from_seconds(1.0, TimerMode::Once),
+        score: 0.0,
     });
 
     // set game timer
@@ -68,13 +76,59 @@ fn setup_system(
         timer: Timer::from_seconds(1.0, TimerMode::Repeating),
         seconds: 0,
     });
+
+    commands.spawn(NodeBundle {
+        style: Style {
+            display: Display::Flex,
+            justify_content: JustifyContent::SpaceBetween,
+            width: Val::Percent(100.),
+            position_type: PositionType::Absolute,
+            top: Val::Px(0.),
+            padding: UiRect::all(Val::Px(10.0)),
+            ..default()
+        },
+        ..default()
+    }).with_children(|p| {
+        p.spawn((
+            TextBundle::from_section(
+                "score:0000",
+                TextStyle {
+                    font_size: 20.0,
+                    ..default()
+                },
+            ),
+            ScoreBoard,
+        ));
+    });
 }
 
 fn game_timer_system(
     mut game_timer: ResMut<GameTimer>,
-    time: Res<Time>,
+    time: Res<Time<Virtual>>,
 ) {
     if game_timer.timer.tick(time.delta()).just_finished() {
         game_timer.seconds += 1;
+    }
+}
+
+fn update_score_board(
+    player_status: Res<PlayerStatus>,
+    mut query: Query<&mut Text, With<ScoreBoard>>,
+) {
+    for mut text in query.iter_mut() {
+        text.sections[0].value = format!("score: {:04}", player_status.score as u32);
+    }
+}
+
+fn toggle_pause(
+    mut time: ResMut<Time<Virtual>>,
+    input: Res<Input<KeyCode>>,
+) {
+    if input.just_pressed(KeyCode::P) {
+        if time.is_paused() {
+            time.unpause();
+        } else {
+            time.pause();
+        }
     }
 }

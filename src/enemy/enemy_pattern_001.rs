@@ -18,7 +18,7 @@ impl Plugin for EnemyPattern001 {
 #[derive(Component)]
 pub struct EnemyMovePattern001;
 
-pub fn enemy_spawn_pattern_001(
+fn enemy_spawn_pattern_001(
     mut commands: Commands,
     mut materials: ResMut<Assets<ColorMaterial>>,
     mut meshes: ResMut<Assets<Mesh>>,
@@ -53,6 +53,7 @@ pub fn enemy_spawn_pattern_001(
                 },
                 Enemy {
                     shoot_interval: Timer::from_seconds(shot_duration, TimerMode::Repeating),
+                    point: 1.0,
                 },
                 AutoDespawn,
                 Velocity {x: 0.0, y: -0.5},
