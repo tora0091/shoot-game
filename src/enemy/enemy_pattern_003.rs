@@ -1,9 +1,8 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
-use rand::Rng;
 
 use crate::define::*;
 
-use super::EnemySchedule;
+use super::{EnemySchedule, get_shoot_duration};
 
 pub struct EnemyPattern003;
 
@@ -27,10 +26,8 @@ fn enemy_spawn_pattern_003(
     mut enemy_schedule: ResMut<EnemySchedule>,
     game_timer: Res<GameTimer>,
 ) {
-    let mut rng = rand::thread_rng();
-
     if EnemySchedule::is_ready(&mut enemy_schedule.enemy_pattern_003, game_timer.seconds) {
-        let shot_duration = rng.gen_range(1.0..3.0);
+        let shot_duration = get_shoot_duration();
 
         struct Position {
             x: f32,

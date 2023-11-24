@@ -1,4 +1,5 @@
 use bevy::{prelude::*, sprite::MaterialMesh2dBundle};
+use rand::Rng;
 
 use crate::{Enemy, AutoDespawn, SpeedControl, SHOOT_RADIUS, SHOOT_VELOCITY, Velocity, FromEnemyShoot};
 
@@ -9,6 +10,7 @@ use self::{
     enemy_pattern_004::EnemyPattern004,
     enemy_pattern_005::EnemyPattern005,
     enemy_pattern_006::EnemyPattern006,
+    enemy_pattern_007::EnemyPattern007,
 };
 
 mod enemy_pattern_001;
@@ -17,6 +19,7 @@ mod enemy_pattern_003;
 mod enemy_pattern_004;
 mod enemy_pattern_005;
 mod enemy_pattern_006;
+mod enemy_pattern_007;
 
 pub struct EnemyPlugin;
 
@@ -28,6 +31,7 @@ pub struct EnemySchedule {
     pub enemy_pattern_004: EnemyScheduleValue,
     pub enemy_pattern_005: EnemyScheduleValue,
     pub enemy_pattern_006: EnemyScheduleValue,
+    pub enemy_pattern_007: EnemyScheduleValue,
 }
 
 impl EnemySchedule {
@@ -56,6 +60,7 @@ impl Plugin for EnemyPlugin {
                     enemy_pattern_004: EnemyScheduleValue { seconds: 45, enable: true },
                     enemy_pattern_005: EnemyScheduleValue { seconds: 60, enable: true },
                     enemy_pattern_006: EnemyScheduleValue { seconds: 75, enable: true },
+                    enemy_pattern_007: EnemyScheduleValue { seconds: 1, enable: true },
                 }
             )
             .add_plugins((
@@ -65,6 +70,7 @@ impl Plugin for EnemyPlugin {
                 EnemyPattern004,
                 EnemyPattern005,
                 EnemyPattern006,
+                EnemyPattern007,
             ))
             .add_systems(Update, enemy_shoot_system);
     }
@@ -94,4 +100,8 @@ fn enemy_shoot_system(
             ));
         }
     }
+}
+
+pub fn get_shoot_duration() -> f32 {
+    return rand::thread_rng().gen_range(1.0..3.0);
 }
